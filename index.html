@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f6f7">
+  <title>Reel — your movie library</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172126;
+      --muted: #7a858a;
+      --line: #e9edef;
+      --paper: #ffffff;
+      --canvas: #f5f6f7;
+      --teal: #168c80;
+      --teal-soft: #e6f4f1;
+      --amber: #be8731;
+      --amber-soft: #fbf3e4;
+      --blue: #547ca1;
+      --blue-soft: #edf3f9;
+      --rose: #b46a70;
+      --rose-soft: #f8ecee;
+      --shadow: 0 1px 2px rgba(22, 36, 42, .04), 0 8px 28px rgba(22, 36, 42, .035);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--canvas); color: var(--ink); font: 14px/1.45 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    button, input, select { font: inherit; }
+    button { color: inherit; }
+    .app { min-height: 100vh; }
+    .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 5; display: flex; flex-direction: column; width: 226px; padding: 24px 16px 18px; background: #fff; border-right: 1px solid var(--line); }
+    .brand { display: flex; align-items: center; gap: 11px; padding: 0 10px 29px; color: var(--ink); text-decoration: none; }
+    .brand-mark { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; color: #fff; background: #173938; }
+    .brand-name { font-size: 17px; font-weight: 720; letter-spacing: -.5px; }
+    .brand-caption { margin-top: 1px; color: #9aa3a7; font-size: 10px; letter-spacing: 1.3px; text-transform: uppercase; }
+    .nav-label { padding: 0 11px 9px; color: #a1aaae; font-size: 10px; font-weight: 700; letter-spacing: 1.15px; text-transform: uppercase; }
+    .nav { display: grid; gap: 4px; }
+    .nav-button { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 11px; border: 0; border-radius: 8px; color: #677378; background: transparent; text-align: left; cursor: pointer; transition: background .16s, color .16s; }
+    .nav-button:hover { color: var(--ink); background: #f5f7f7; }
+    .nav-button.active { color: #176f66; background: #eaf5f3; font-weight: 650; }
+    .nav-button svg { width: 17px; height: 17px; flex: 0 0 auto; }
+    .nav-count { margin-left: auto; color: #9aa3a7; font-size: 11px; font-variant-numeric: tabular-nums; }
+    .sidebar-spacer { flex: 1; }
+    .side-note { padding: 14px 13px; border: 1px solid #edf0f0; border-radius: 11px; background: #fafbfb; }
+    .side-note-top { display: flex; align-items: center; gap: 8px; color: #455257; font-size: 12px; font-weight: 650; }
+    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: #56a590; box-shadow: 0 0 0 3px #e3f1ed; }
+    .side-note p { margin: 8px 0 0; color: #899397; font-size: 11px; line-height: 1.55; }
+    .side-footer { padding: 15px 10px 0; color: #a3abad; font-size: 10px; }
+    .workspace { min-height: 100vh; margin-left: 226px; }
+    .topbar { position: sticky; top: 0; z-index: 4; display: flex; align-items: center; justify-content: space-between; min-height: 62px; padding: 0 34px; border-bottom: 1px solid var(--line); background: rgba(255,255,255,.94); backdrop-filter: blur(12px); }
+    .crumb { color: #95a0a4; font-size: 12px; }
+    .crumb strong { color: #47545a; font-weight: 600; }
+    .top-actions { display: flex; align-items: center; gap: 18px; }
+    .saved-state { display: flex; align-items: center; gap: 7px; color: #8b969a; font-size: 11px; }
+    .saved-state svg { width: 14px; height: 14px; color: #5d9b8d; }
+    .avatar { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid #e1e8e7; border-radius: 50%; color: #386b64; background: #edf5f3; font-size: 10px; font-weight: 700; }
+    .content { max-width: 1540px; margin: 0 auto; padding: 31px 34px 50px; }
+    .page-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 22px; }
+    .eyebrow { margin-bottom: 6px; color: #8c989c; font-size: 10px; font-weight: 700; letter-spacing: 1.25px; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(25px, 2.7vw, 31px); font-weight: 660; letter-spacing: -1.2px; line-height: 1.2; }
+    .subhead { margin: 7px 0 0; color: #859094; font-size: 13px; }
+    .heading-actions { display: flex; align-items: center; gap: 9px; }
+    .button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 37px; padding: 0 13px; border: 1px solid #dfe5e6; border-radius: 7px; color: #4f5c61; background: #fff; font-size: 12px; font-weight: 600; cursor: pointer; transition: border .15s, background .15s, transform .15s; }
+    .button:hover { border-color: #b9c9c7; background: #fbfdfc; }
+    .button:active { transform: translateY(1px); }
+    .button svg { width: 15px; height: 15px; }
+    .button-primary { border-color: #176f66; color: #fff; background: #176f66; box-shadow: 0 2px 5px rgba(23,111,102,.14); }
+    .button-primary:hover { border-color: #125f57; background: #125f57; }
+    .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 13px; margin-bottom: 17px; }
+    .metric { position: relative; min-height: 119px; padding: 17px 18px 14px; overflow: hidden; border: 1px solid #e9edef; border-radius: 10px; background: #fff; box-shadow: var(--shadow); }
+    .metric-label { color: #879296; font-size: 11px; font-weight: 550; }
+    .metric-value { display: flex; align-items: baseline; gap: 7px; margin-top: 9px; font-size: 27px; font-weight: 650; letter-spacing: -.8px; line-height: 1; font-variant-numeric: tabular-nums; }
+    .metric-unit { color: #9ba4a7; font-size: 11px; font-weight: 500; letter-spacing: 0; }
+    .metric-foot { margin-top: 10px; color: #a0a9ac; font-size: 10px; }
+    .metric-icon { position: absolute; top: 16px; right: 17px; display: grid; place-items: center; width: 31px; height: 31px; border-radius: 9px; color: #4b8880; background: #eef7f5; }
+    .metric-icon.gold { color: #b48a48; background: #fbf5e9; }
+    .metric-icon.blue { color: #6185a3; background: #eef3f8; }
+    .metric-icon svg { width: 16px; height: 16px; }
+    .progress-track { position: absolute; right: 18px; bottom: 0; left: 18px; height: 2px; overflow: hidden; background: #f0f2f2; }
+    .progress-fill { height: 100%; background: #65a89a; }
+    .feature-row { display: grid; grid-template-columns: minmax(0, 1fr) 264px; gap: 15px; margin-bottom: 17px; }
+    .feature-card { position: relative; display: flex; align-items: center; justify-content: space-between; min-height: 135px; padding: 22px 25px; overflow: hidden; border-radius: 10px; color: #f2f8f6; background: #173b39; box-shadow: var(--shadow); }
+    .feature-card::before, .feature-card::after { position: absolute; content: ""; pointer-events: none; }
+    .feature-card::before { top: -97px; right: 13%; width: 245px; height: 245px; border: 1px solid rgba(229,246,241,.12); border-radius: 50%; box-shadow: 0 0 0 28px rgba(229,246,241,.035), 0 0 0 58px rgba(229,246,241,.025); }
+    .feature-card::after { right: 26%; bottom: -107px; width: 210px; height: 140px; background: linear-gradient(135deg, transparent 35%, rgba(136,194,175,.13)); transform: rotate(-20deg); }
+    .feature-copy { position: relative; z-index: 1; max-width: 480px; }
+    .feature-kicker { color: #a1c7be; font-size: 10px; font-weight: 700; letter-spacing: 1.25px; text-transform: uppercase; }
+    .feature-title { margin-top: 8px; font-family: Georgia, "Times New Roman", serif; font-size: 23px; letter-spacing: -.25px; }
+    .feature-sub { margin-top: 5px; color: #b8cec8; font-size: 11px; }
+    .feature-stat { position: relative; z-index: 1; min-width: 120px; padding-left: 23px; border-left: 1px solid rgba(235,246,243,.18); }
+    .feature-stat strong { display: block; font-size: 25px; font-weight: 600; letter-spacing: -.5px; font-variant-numeric: tabular-nums; }
+    .feature-stat span { color: #b4cec7; font-size: 10px; }
+    .breakdown-card { min-height: 135px; padding: 17px 17px 13px; border: 1px solid #e9edef; border-radius: 10px; background: #fff; box-shadow: var(--shadow); }
+    .breakdown-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 11px; color: #536065; font-size: 11px; font-weight: 650; }
+    .breakdown-title span:last-child { color: #a1aaae; font-size: 10px; font-weight: 450; }
+    .bar-row { display: grid; grid-template-columns: 69px 1fr 22px; align-items: center; gap: 8px; margin: 8px 0; color: #879296; font-size: 10px; }
+    .bar-track { height: 5px; overflow: hidden; border-radius: 10px; background: #f0f2f2; }
+    .bar-fill { height: 100%; min-width: 2px; border-radius: inherit; background: #77b3a5; }
+    .bar-fill.plan { background: #d3b26e; }
+    .bar-fill.watch { background: #88a9c4; }
+    .bar-fill.other { background: #c98a8d; }
+    .bar-count { color: #637075; text-align: right; font-variant-numeric: tabular-nums; }
+    .library { overflow: hidden; border: 1px solid #e7ebed; border-radius: 10px; background: #fff; box-shadow: var(--shadow); }
+    .library-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 63px; padding: 0 19px; border-bottom: 1px solid #edf0f1; }
+    .library-title-wrap { display: flex; align-items: baseline; gap: 9px; min-width: 180px; }
+    .library-title { font-size: 13px; font-weight: 650; }
+    .library-count { color: #9aa4a8; font-size: 10px; }
+    .library-tools { display: flex; align-items: center; gap: 9px; }
+    .search-wrap { position: relative; width: min(270px, 25vw); }
+    .search-wrap svg { position: absolute; top: 50%; left: 10px; width: 14px; height: 14px; color: #a0aaae; transform: translateY(-50%); pointer-events: none; }
+    .search { width: 100%; height: 33px; padding: 0 11px 0 31px; border: 1px solid #e7ebed; border-radius: 6px; outline: none; color: #38464b; background: #fcfdfd; font-size: 11px; }
+    .search:focus { border-color: #9cc4bd; box-shadow: 0 0 0 3px rgba(61,144,130,.09); }
+    .sort-select { height: 33px; padding: 0 26px 0 10px; border: 1px solid #e7ebed; border-radius: 6px; outline: none; color: #718085; background: #fff; font-size: 10px; cursor: pointer; }
+    .filter-tabs { display: flex; align-items: center; gap: 4px; padding: 12px 18px 11px; border-bottom: 1px solid #f0f2f3; }
+    .filter-tab { display: inline-flex; align-items: center; gap: 6px; min-height: 27px; padding: 0 9px; border: 0; border-radius: 5px; color: #899397; background: transparent; font-size: 10px; cursor: pointer; }
+    .filter-tab:hover { color: #536166; background: #f7f9f9; }
+    .filter-tab.active { color: #24756c; background: #ecf6f4; font-weight: 650; }
+    .filter-tab b { color: inherit; font-size: 9px; font-weight: 550; opacity: .75; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    thead { background: #fbfcfc; }
+    th { height: 34px; padding: 0 16px; border-bottom: 1px solid #edf0f1; color: #9ba5a8; font-size: 9px; font-weight: 650; letter-spacing: .65px; text-transform: uppercase; white-space: nowrap; }
+    th:first-child, td:first-child { padding-left: 19px; }
+    th:last-child, td:last-child { padding-right: 19px; }
+    td { height: 55px; padding: 7px 16px; border-bottom: 1px solid #f0f2f3; color: #606d72; font-size: 11px; white-space: nowrap; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: #fcfdfd; }
+    .movie-cell { display: flex; align-items: center; gap: 11px; min-width: 260px; }
+    .poster-tile { position: relative; display: grid; place-items: center; width: 29px; height: 38px; flex: 0 0 auto; overflow: hidden; border: 1px solid rgba(22,42,39,.09); border-radius: 4px; color: rgba(255,255,255,.91); font-family: Georgia, serif; font-size: 10px; font-weight: 700; text-shadow: 0 1px 4px rgba(0,0,0,.3); }
+    .poster-tile::after { position: absolute; inset: 0; border: 1px solid rgba(255,255,255,.18); content: ""; pointer-events: none; }
+    .movie-info { min-width: 0; }
+    .movie-name { max-width: 390px; overflow: hidden; color: #38464b; font-size: 11px; font-weight: 620; text-overflow: ellipsis; }
+    .movie-meta { margin-top: 2px; color: #a0a9ad; font-size: 9px; }
+    .status-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 20px; color: #738085; background: #f0f2f3; font-size: 9px; }
+    .status-pill::before { width: 5px; height: 5px; border-radius: 50%; background: #abb4b7; content: ""; }
+    .status-pill.completed { color: #43877b; background: #eaf5f2; }
+    .status-pill.completed::before { background: #58a291; }
+    .status-pill.plan { color: #9c773c; background: #fbf4e7; }
+    .status-pill.plan::before { background: #c7a45e; }
+    .status-pill.watching { color: #5f83a1; background: #eef4f8; }
+    .status-pill.watching::before { background: #779ab7; }
+    .status-pill.dropped { color: #a3686d; background: #f8edef; }
+    .status-pill.dropped::before { background: #c17d82; }
+    .rating { color: #52646a; font-variant-numeric: tabular-nums; }
+    .rating-star { margin-right: 4px; color: #c29c57; }
+    .no-rating { color: #b0b8bb; }
+    .edit-button { padding: 5px 8px; border: 1px solid transparent; border-radius: 5px; color: #9ba5a8; background: transparent; font-size: 10px; cursor: pointer; }
+    .edit-button:hover { border-color: #e5ecea; color: #387c72; background: #f4f9f8; }
+    .empty-state { padding: 42px 20px; color: #8b969a; text-align: center; }
+    .empty-state strong { display: block; margin-bottom: 4px; color: #516066; font-size: 12px; }
+    .empty-state span { font-size: 11px; }
+    .table-footer { display: flex; align-items: center; justify-content: space-between; min-height: 49px; padding: 0 18px; border-top: 1px solid #edf0f1; color: #a0a9ad; font-size: 10px; }
+    .pagination { display: flex; align-items: center; gap: 5px; }
+    .page-button { display: grid; place-items: center; width: 27px; height: 26px; border: 1px solid #e8edef; border-radius: 5px; color: #748187; background: #fff; cursor: pointer; }
+    .page-button:hover:not(:disabled) { border-color: #b8ccc8; color: #27766d; }
+    .page-button:disabled { color: #c2c9cb; background: #fafbfb; cursor: default; }
+    .page-number { min-width: 21px; color: #6b777c; text-align: center; font-variant-numeric: tabular-nums; }
+    .toast { position: fixed; right: 24px; bottom: 22px; z-index: 20; display: flex; align-items: center; gap: 9px; max-width: min(420px, calc(100vw - 32px)); padding: 12px 15px; border: 1px solid #d6e8e3; border-radius: 8px; color: #376c62; background: #f2faf7; box-shadow: 0 8px 30px rgba(20,50,45,.12); font-size: 12px; opacity: 0; pointer-events: none; transform: translateY(8px); transition: opacity .18s, transform .18s; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .modal-backdrop { position: fixed; inset: 0; z-index: 30; display: none; place-items: center; padding: 20px; background: rgba(17,30,32,.36); backdrop-filter: blur(3px); }
+    .modal-backdrop.open { display: grid; }
+    .modal { width: min(430px, 100%); border: 1px solid #e8eded; border-radius: 12px; background: #fff; box-shadow: 0 22px 70px rgba(15,34,35,.2); animation: rise .16s ease-out; }
+    @keyframes rise { from { opacity: .6; transform: translateY(7px) scale(.99); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .modal-head { display: flex; align-items: flex-start; justify-content: space-between; padding: 20px 21px 15px; border-bottom: 1px solid #eef1f1; }
+    .modal-title { margin: 0; font-size: 16px; font-weight: 650; letter-spacing: -.3px; }
+    .modal-desc { margin: 4px 0 0; color: #919b9f; font-size: 11px; }
+    .close-button { display: grid; place-items: center; width: 28px; height: 28px; margin: -4px -5px 0 0; border: 0; border-radius: 6px; color: #9ba5a8; background: transparent; cursor: pointer; }
+    .close-button:hover { color: #455258; background: #f5f7f7; }
+    .modal-body { display: grid; gap: 14px; padding: 18px 21px 20px; }
+    .field { display: grid; gap: 6px; }
+    .field label { color: #627076; font-size: 10px; font-weight: 650; }
+    .field input, .field select { width: 100%; height: 37px; padding: 0 10px; border: 1px solid #e2e8e9; border-radius: 6px; outline: none; color: #435157; background: #fff; font-size: 12px; }
+    .field input:focus, .field select:focus { border-color: #9cc4bd; box-shadow: 0 0 0 3px rgba(61,144,130,.09); }
+    .field-hint { color: #a1aaad; font-size: 9px; }
+    .modal-actions { display: flex; align-items: center; gap: 8px; padding: 14px 21px; border-top: 1px solid #eef1f1; background: #fcfdfd; border-radius: 0 0 12px 12px; }
+    .modal-actions .spacer { flex: 1; }
+    .button-danger { border-color: transparent; color: #a56e72; background: transparent; }
+    .button-danger:hover { border-color: #f0dadd; color: #94575e; background: #fbf1f2; }
+    #importInput { display: none; }
+    @media (max-width: 1060px) {
+      .sidebar { width: 195px; padding-inline: 12px; }
+      .workspace { margin-left: 195px; }
+      .content { padding-inline: 24px; }
+      .topbar { padding-inline: 24px; }
+      .feature-row { grid-template-columns: minmax(0, 1fr) 240px; }
+      .metric { padding-inline: 15px; }
+    }
+    @media (max-width: 820px) {
+      .sidebar { width: 64px; padding: 18px 8px; align-items: center; }
+      .brand { padding: 0 0 24px; }
+      .brand-name, .brand-caption, .nav-label, .nav-button span, .nav-count, .side-note, .side-footer { display: none; }
+      .brand-mark { width: 37px; height: 37px; }
+      .nav { width: 100%; }
+      .nav-button { justify-content: center; width: 48px; height: 42px; padding: 0; }
+      .nav-button svg { width: 18px; height: 18px; }
+      .workspace { margin-left: 64px; }
+      .content { padding: 26px 19px 40px; }
+      .topbar { padding-inline: 19px; }
+      .feature-row { grid-template-columns: 1fr; }
+      .breakdown-card { display: grid; grid-template-columns: 1fr 1fr; column-gap: 13px; min-height: 0; }
+      .breakdown-title { grid-column: 1 / -1; }
+    }
+    @media (max-width: 600px) {
+      .sidebar { inset: auto 0 0; flex-direction: row; align-items: center; justify-content: center; width: auto; height: 58px; padding: 5px 10px; border-top: 1px solid var(--line); border-right: 0; }
+      .brand, .sidebar-spacer { display: none; }
+      .nav { display: flex; justify-content: space-around; max-width: 470px; }
+      .nav-button { width: 48px; height: 43px; }
+      .workspace { margin-left: 0; padding-bottom: 58px; }
+      .topbar { min-height: 54px; padding-inline: 15px; }
+      .saved-state { display: none; }
+      .content { padding: 22px 13px 30px; }
+      .page-heading { align-items: flex-start; flex-direction: column; gap: 13px; margin-bottom: 16px; }
+      .heading-actions { width: 100%; }
+      .heading-actions .button { flex: 1; }
+      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin-bottom: 11px; }
+      .metric { min-height: 106px; padding: 13px; }
+      .metric-icon { top: 12px; right: 12px; width: 27px; height: 27px; }
+      .metric-value { margin-top: 11px; font-size: 24px; }
+      .metric-foot { margin-top: 8px; font-size: 9px; }
+      .progress-track { right: 13px; left: 13px; }
+      .feature-row { gap: 10px; margin-bottom: 11px; }
+      .feature-card { min-height: 125px; padding: 18px; }
+      .feature-title { max-width: 220px; font-size: 20px; }
+      .feature-stat { min-width: 91px; padding-left: 15px; }
+      .feature-stat strong { font-size: 22px; }
+      .feature-stat span { font-size: 9px; }
+      .breakdown-card { padding: 14px; }
+      .library-head { align-items: flex-start; flex-direction: column; gap: 10px; padding: 14px; }
+      .library-title-wrap { min-width: 0; }
+      .library-tools { width: 100%; }
+      .search-wrap { width: auto; flex: 1; }
+      .sort-select { max-width: 126px; }
+      .filter-tabs { overflow-x: auto; padding-inline: 12px; }
+      .filter-tab { flex: 0 0 auto; }
+      th { padding-inline: 11px; }
+      td { padding-inline: 11px; }
+      th:first-child, td:first-child { padding-left: 13px; }
+      th:last-child, td:last-child { padding-right: 13px; }
+      .table-footer { padding-inline: 13px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" aria-label="Main navigation">
+      <a class="brand" href="#" aria-label="Reel home">
+        <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7.5h16v12H4zM4 7.5l2.1-3h3.1l-2 3m5 0 2.1-3h3.1l-2 3m5 0 2.1-3H20" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 11v5l4-2.5-4-2.5Z" fill="currentColor"/></svg></span>
+        <span><span class="brand-name">reel</span><span class="brand-caption">personal film ledger</span></span>
+      </a>
+      <div class="nav-label">Your library</div>
+      <nav class="nav">
+        <button class="nav-button active" data-filter="all" title="All movies" aria-label="All movies"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="6.5" height="7" rx="1.2" stroke="currentColor" stroke-width="1.6"/><rect x="13.5" y="4" width="6.5" height="7" rx="1.2" stroke="currentColor" stroke-width="1.6"/><rect x="4" y="13" width="6.5" height="7" rx="1.2" stroke="currentColor" stroke-width="1.6"/><rect x="13.5" y="13" width="6.5" height="7" rx="1.2" stroke="currentColor" stroke-width="1.6"/></svg><span>All movies</span><b class="nav-count" id="nav-all">—</b></button>
+        <button class="nav-button" data-filter="Completed" title="Watched" aria-label="Watched"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5 9.3 17 19 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/></svg><span>Watched</span><b class="nav-count" id="nav-completed">—</b></button>
+        <button class="nav-button" data-filter="Plan to watch" title="Watchlist" aria-label="Watchlist"><svg viewBox="0 0 24 24" fill="none"><path d="M7 4.5h10a1.5 1.5 0 0 1 1.5 1.5v14L12 16.5 5.5 20V6A1.5 1.5 0 0 1 7 4.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 8h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>Watchlist</span><b class="nav-count" id="nav-plan">—</b></button>
+        <button class="nav-button" data-filter="Watching" title="Watching" aria-label="Watching"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M12 7v5l3.4 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Watching</span><b class="nav-count" id="nav-watching">—</b></button>
+        <button class="nav-button" data-filter="Dropped" title="Dropped" aria-label="Dropped"><svg viewBox="0 0 24 24" fill="none"><path d="M7 7 17 17M17 7 7 17" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/></svg><span>Dropped</span><b class="nav-count" id="nav-dropped">—</b></button>
+        <button class="nav-button" data-filter="Unsorted" title="Unsorted" aria-label="Unsorted"><svg viewBox="0 0 24 24" fill="none"><path d="M5 6h14M5 12h9M5 18h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="18" cy="17" r="3" stroke="currentColor" stroke-width="1.5"/></svg><span>Unsorted</span><b class="nav-count" id="nav-unsorted">—</b></button>
+      </nav>
+      <div class="sidebar-spacer"></div>
+      <div class="side-note"><div class="side-note-top"><span class="live-dot"></span> Your private library</div><p>Your list is saved in this browser. Export a CSV any time to keep a portable copy.</p></div>
+      <div class="side-footer">A little more cinema, every day.</div>
+    </aside>
+
+    <div class="workspace">
+      <header class="topbar">
+        <div class="crumb">Library <span aria-hidden="true">/</span> <strong id="crumbLabel">Overview</strong></div>
+        <div class="top-actions"><div class="saved-state" id="savedState"><svg viewBox="0 0 20 20" fill="none"><path d="m4.5 10.5 3.2 3.2 7.8-8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Saved on this device</span></div><div class="avatar" aria-label="Your library">ML</div></div>
+      </header>
+      <main class="content">
+        <section class="page-heading">
+          <div><div class="eyebrow">Your collection</div><h1 id="pageTitle">A life in cinema.</h1><p class="subhead" id="pageSubtitle">Every film you’ve seen, saved, or want to find next.</p></div>
+          <div class="heading-actions">
+            <button class="button" id="exportButton" type="button"><svg viewBox="0 0 20 20" fill="none"><path d="M10 3v10m0 0 3.3-3.3M10 13 6.7 9.7M4 13v2.5A1.5 1.5 0 0 0 5.5 17h9a1.5 1.5 0 0 0 1.5-1.5V13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Export CSV</button>
+            <button class="button" id="importButton" type="button"><svg viewBox="0 0 20 20" fill="none"><path d="M10 13V3m0 0L6.7 6.3M10 3l3.3 3.3M4 12.5v3A1.5 1.5 0 0 0 5.5 17h9a1.5 1.5 0 0 0 1.5-1.5v-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Import CSV</button>
+            <button class="button button-primary" id="addButton" type="button"><svg viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>Add a movie</button>
+            <input type="file" id="importInput" accept=".csv,text/csv">
+          </div>
+        </section>
+
+        <section class="metrics" aria-label="Library summary">
+          <article class="metric"><div class="metric-label">Movies in your library</div><div class="metric-icon"><svg viewBox="0 0 20 20" fill="none"><rect x="3" y="4" width="14" height="12" rx="1.6" stroke="currentColor" stroke-width="1.4"/><path d="M7 4v12m6-12v12M3 8h4m6 0h4m-14 4h4m6 0h4" stroke="currentColor" stroke-width="1.2"/></svg></div><div class="metric-value" id="metricTotal">—</div><div class="metric-foot">Across every list</div></article>
+          <article class="metric"><div class="metric-label">Watched</div><div class="metric-icon"><svg viewBox="0 0 20 20" fill="none"><path d="m4.2 10.5 3.4 3.4 8.2-8.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="metric-value" id="metricWatched">—</div><div class="metric-foot" id="watchedFoot">Films marked completed</div><div class="progress-track"><div class="progress-fill" id="watchedProgress"></div></div></article>
+          <article class="metric"><div class="metric-label">Up next</div><div class="metric-icon gold"><svg viewBox="0 0 20 20" fill="none"><path d="M5.5 3.5h9a1 1 0 0 1 1 1v12l-5.5-3-5.5 3v-12a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg></div><div class="metric-value" id="metricPlan">—</div><div class="metric-foot">On your watchlist</div></article>
+          <article class="metric"><div class="metric-label">Your average rating</div><div class="metric-icon blue"><svg viewBox="0 0 20 20" fill="none"><path d="m10 2.7 2.2 4.6 5.1.7-3.7 3.6.9 5-4.5-2.4-4.5 2.4.9-5-3.7-3.6 5.1-.7L10 2.7Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg></div><div class="metric-value" id="metricRating">—<span class="metric-unit">/ 10</span></div><div class="metric-foot" id="ratingFoot">Ratings you’ve added</div></article>
+        </section>
+
+        <section class="feature-row">
+          <div class="feature-card"><div class="feature-copy"><div class="feature-kicker">Your movie journal</div><div class="feature-title" id="featureTitle">A collection with a story.</div><div class="feature-sub" id="featureSub">Pick up where you left off, or find something new to watch.</div></div><div class="feature-stat"><strong id="completionPercent">—</strong><span>of your library watched</span></div></div>
+          <div class="breakdown-card"><div class="breakdown-title"><span>At a glance</span><span id="breakdownTotal">— films</span></div><div id="breakdownBars"></div></div>
+        </section>
+
+        <section class="library" aria-label="Movie library">
+          <div class="library-head"><div class="library-title-wrap"><span class="library-title" id="libraryTitle">Your library</span><span class="library-count" id="libraryCount">— titles</span></div><div class="library-tools"><label class="search-wrap"><svg viewBox="0 0 20 20" fill="none"><circle cx="8.7" cy="8.7" r="5.7" stroke="currentColor" stroke-width="1.5"/><path d="m13 13 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><input id="searchInput" class="search" type="search" placeholder="Search your movies…" autocomplete="off" aria-label="Search movies"></label><select id="sortSelect" class="sort-select" aria-label="Sort movies"><option value="title-asc">Title A–Z</option><option value="title-desc">Title Z–A</option><option value="rating-desc">Top rated</option><option value="year-desc">Year, newest</option><option value="year-asc">Year, oldest</option></select></div></div>
+          <div class="filter-tabs" role="tablist" aria-label="Filter movies"><button class="filter-tab active" data-filter="all" role="tab">All <b id="tab-all">—</b></button><button class="filter-tab" data-filter="Completed" role="tab">Watched <b id="tab-completed">—</b></button><button class="filter-tab" data-filter="Plan to watch" role="tab">Watchlist <b id="tab-plan">—</b></button><button class="filter-tab" data-filter="Watching" role="tab">Watching <b id="tab-watching">—</b></button><button class="filter-tab" data-filter="Dropped" role="tab">Dropped <b id="tab-dropped">—</b></button><button class="filter-tab" data-filter="Unsorted" role="tab">Unsorted <b id="tab-unsorted">—</b></button></div>
+          <div class="table-wrap"><table><thead><tr><th style="width:52%">Movie</th><th style="width:21%">Status</th><th style="width:15%">Rating</th><th style="width:12%;text-align:right">Edit</th></tr></thead><tbody id="movieRows"></tbody></table><div class="empty-state" id="emptyState" hidden><strong>No movies found</strong><span>Try a different search, or add a title to your collection.</span></div></div>
+          <footer class="table-footer"><span id="showingText">—</span><div class="pagination"><button class="page-button" id="prevPage" aria-label="Previous page"><svg viewBox="0 0 16 16" width="13" height="13" fill="none"><path d="m10 3.5-4.5 4.5L10 12.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span class="page-number" id="pageNumber">1</span><button class="page-button" id="nextPage" aria-label="Next page"><svg viewBox="0 0 16 16" width="13" height="13" fill="none"><path d="m6 3.5 4.5 4.5L6 12.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></footer>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"><span class="live-dot"></span><span id="toastMessage"></span></div>
+  <div class="modal-backdrop" id="modalBackdrop" role="presentation"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><header class="modal-head"><div><h2 class="modal-title" id="modalTitle">Add a movie</h2><p class="modal-desc" id="modalDesc">Keep a note of what you want to watch next.</p></div><button class="close-button" id="closeModal" type="button" aria-label="Close"><svg viewBox="0 0 20 20" width="16" height="16" fill="none"><path d="m5 5 10 10M15 5 5 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></header><form id="movieForm"><div class="modal-body"><div class="field"><label for="titleInput">Movie title</label><input id="titleInput" name="title" required maxlength="180" placeholder="e.g. In the Mood for Love" autocomplete="off"></div><div class="field"><label for="statusInput">Status</label><select id="statusInput" name="status"><option value="Plan to watch">Plan to watch</option><option value="Completed">Completed</option><option value="Watching">Watching</option><option value="Dropped">Dropped</option><option value="">Unsorted</option></select></div><div class="field"><label for="ratingInput">Your rating <span style="font-weight:450;color:#9ca6a9">(optional, out of 10)</span></label><input id="ratingInput" name="rating" type="number" min="0" max="10" step="0.5" placeholder="Leave blank for now"><span class="field-hint">Half points are welcome. A rating of 0 is valid too.</span></div></div><footer class="modal-actions"><button class="button button-danger" id="deleteButton" type="button" hidden>Remove movie</button><span class="spacer"></span><button class="button" id="cancelModal" type="button">Cancel</button><button class="button button-primary" type="submit" id="saveMovie">Save movie</button></footer></form></section></div>
+
+  <script id="seedData" type="application/json">[{"id":"seed-0001","title":"300","status":"Completed","rating":""},{"id":"seed-0002","title":"007 - Quantum of Solace (2008)","status":"Completed","rating":""},{"id":"seed-0003","title":"007 James Bond - Diamonds are Forever (1971)","status":"","rating":""},{"id":"seed-0004","title":"007 James Bond - Dr No (1962)","status":"","rating":""},{"id":"seed-0005","title":"007 James Bond - For Your Eyes Only (1981)","status":"","rating":""},{"id":"seed-0006","title":"007 James Bond - GoldenEye (1995)","status":"","rating":""},{"id":"seed-0007","title":"007 James Bond - Goldfinger (1964)","status":"","rating":""},{"id":"seed-0008","title":"007 James Bond - Licence To Kill (1989)","status":"","rating":""},{"id":"seed-0009","title":"007 James Bond - Live and Let Die (1973)","status":"","rating":""},{"id":"seed-0010","title":"007 James Bond - Moonraker (1979)","status":"","rating":""},{"id":"seed-0011","title":"007 James Bond - Octopussy (1983)","status":"Completed","rating":""},{"id":"seed-0012","title":"007 James Bond - The Man With The Golden Gun (1974)","status":"Completed","rating":""},{"id":"seed-0013","title":"007 James Bond - The Spy Who Loved Me (1977)","status":"","rating":""},{"id":"seed-0014","title":"007 James Bond On Her Majesty's Secret Service (1969)","status":"","rating":""},{"id":"seed-0015","title":"007 James Bond You Only Live Twice (1967)","status":"","rating":""},{"id":"seed-0016","title":"007 JamesBond - The Living Daylights (1987)","status":"","rating":""},{"id":"seed-0017","title":"10 Things I Hate About You (1999)","status":"Completed","rating":""},{"id":"seed-0018","title":"12 Angry Men (1957)","status":"Completed","rating":""},{"id":"seed-0019","title":"2 Fast 2 Furious (2003)","status":"Completed","rating":""},{"id":"seed-0020","title":"2 States","status":"Completed","rating":""},{"id":"seed-0021","title":"2001 A Space Odyssey (1968)","status":"Completed","rating":""},{"id":"seed-0022","title":"21 (2008)","status":"","rating":""},{"id":"seed-0023","title":"21 Jump Street (2012)","status":"Completed","rating":""},{"id":"seed-0024","title":"22 Female Kottayam","status":"","rating":""},{"id":"seed-0025","title":"22 Jump Street (2014)","status":"Completed","rating":""},{"id":"seed-0026","title":"3 Idiots","status":"Completed","rating":""},{"id":"seed-0027","title":"300 RISE OF AN EMPIRE","status":"Completed","rating":""},{"id":"seed-0028","title":"A Quiet Place (2018)","status":"","rating":""},{"id":"seed-0029","title":"Aaraam Thampuran","status":"","rating":""},{"id":"seed-0030","title":"Aavesham (2024)","status":"Completed","rating":""},{"id":"seed-0031","title":"About Time (2013)","status":"Completed","rating":""},{"id":"seed-0032","title":"Ajab Prem Ki Ghazab Kahani ","status":"Completed","rating":""},{"id":"seed-0033","title":"Akira (1988)","status":"Completed","rating":""},{"id":"seed-0034","title":"Akkare Akkare Akkare (1990)","status":"Completed","rating":7.0},{"id":"seed-0035","title":"Aladdin (1992)","status":"Completed","rating":""},{"id":"seed-0036","title":"Aladdin (2019)","status":"Completed","rating":""},{"id":"seed-0037","title":"Alien (1979)","status":"","rating":""},{"id":"seed-0038","title":"Almost Famous","status":"","rating":""},{"id":"seed-0039","title":"American Beauty (1999)","status":"Completed","rating":""},{"id":"seed-0040","title":"American History X","status":"Completed","rating":""},{"id":"seed-0041","title":"American Hustle (2013)","status":"Completed","rating":""},{"id":"seed-0042","title":"American Pie (1999)","status":"Completed","rating":""},{"id":"seed-0043","title":"American Pie 2 (2001)","status":"Completed","rating":""},{"id":"seed-0044","title":"American Pie 3 - The Wedding (2003)","status":"Completed","rating":""},{"id":"seed-0045","title":"American Psyco (2000)","status":"Completed","rating":""},{"id":"seed-0046","title":"American reunion","status":"Completed","rating":""},{"id":"seed-0047","title":"Anchorman The Legend Of Ron Burgundy (2004)","status":"Completed","rating":5.0},{"id":"seed-0048","title":"Angamaly diaries","status":"","rating":""},{"id":"seed-0049","title":"Annayum Rasoolum","status":"Completed","rating":7.0},{"id":"seed-0050","title":"Ant-Man (2015)","status":"Completed","rating":""},{"id":"seed-0051","title":"Ant-Man and the Wasp (2018)","status":"","rating":""},{"id":"seed-0052","title":"Aparan (1988)","status":"Completed","rating":""},{"id":"seed-0053","title":"Aram plus Aram = Kinnaram","status":"","rating":""},{"id":"seed-0054","title":"Arrival (2016)","status":"Completed","rating":""},{"id":"seed-0055","title":"Avengers Age of Ultron (2015)","status":"Completed","rating":""},{"id":"seed-0056","title":"Ayalum Njanum Thammil","status":"","rating":""},{"id":"seed-0057","title":"AZHAKIYA RAVANAN","status":"","rating":""},{"id":"seed-0058","title":"Baashha (1995)","status":"Completed","rating":""},{"id":"seed-0059","title":"Baazigar (1993)","status":"Completed","rating":""},{"id":"seed-0060","title":"Balettan (2003)","status":"Completed","rating":6.0},{"id":"seed-0061","title":"Bangalore Days","status":"Completed","rating":""},{"id":"seed-0062","title":"Basic Instinct","status":"Completed","rating":""},{"id":"seed-0063","title":"Batman (2022)","status":"Completed","rating":""},{"id":"seed-0064","title":"Batman Begins","status":"Completed","rating":""},{"id":"seed-0065","title":"Batman v Superman Dawn of Justice (2016)","status":"Completed","rating":""},{"id":"seed-0066","title":"Batman vs. Robin","status":"Plan to watch","rating":""},{"id":"seed-0067","title":"Batman: Bad Blood","status":"","rating":""},{"id":"seed-0068","title":"Batman: Hush","status":"","rating":""},{"id":"seed-0069","title":"Before Sunrise.1995.","status":"","rating":""},{"id":"seed-0070","title":"Before.Midnight.2013","status":"","rating":""},{"id":"seed-0071","title":"Before.Sunset.2004","status":"","rating":""},{"id":"seed-0072","title":"Black Panther (2018)","status":"Completed","rating":""},{"id":"seed-0073","title":"Blade 1 (1998)","status":"","rating":""},{"id":"seed-0074","title":"Blade 2 (2002)","status":"","rating":""},{"id":"seed-0075","title":"Blade 3 (2004)","status":"","rating":""},{"id":"seed-0076","title":"Blade Runner (1997)","status":"","rating":""},{"id":"seed-0077","title":"Blade Runner 2049 (2017)","status":"Completed","rating":""},{"id":"seed-0078","title":"Blue streak (1999) ","status":"Completed","rating":5.0},{"id":"seed-0079","title":"Bombay","status":"Completed","rating":""},{"id":"seed-0080","title":"Boys (2003)","status":"Plan to watch","rating":""},{"id":"seed-0081","title":"Bramayugam (2024)","status":"Completed","rating":""},{"id":"seed-0082","title":"Braveheart","status":"Completed","rating":7.0},{"id":"seed-0083","title":"Caligula (1979)","status":"Completed","rating":0.0},{"id":"seed-0084","title":"Captain America - The First Avenger (2011)","status":"Completed","rating":""},{"id":"seed-0085","title":"Captain America Civil War (2016)","status":"Completed","rating":""},{"id":"seed-0086","title":"Captain America The Winter Soldier (2014)","status":"Completed","rating":""},{"id":"seed-0087","title":"Captain Marvel (2019)","status":"","rating":""},{"id":"seed-0088","title":"Carnage (2011)","status":"Completed","rating":""},{"id":"seed-0089","title":"Casablanca (1942)","status":"Completed","rating":8.0},{"id":"seed-0090","title":"Casino (1995)","status":"Completed","rating":""},{"id":"seed-0091","title":"Casino Royal (2006)","status":"Completed","rating":""},{"id":"seed-0092","title":"Catch Me If You Can (2002)","status":"Completed","rating":""},{"id":"seed-0093","title":"Chaappa Kurishu (2011)","status":"Completed","rating":""},{"id":"seed-0094","title":"Chennai Express (2013)","status":"Completed","rating":""},{"id":"seed-0095","title":"CHIDAMBARAM (1985)","status":"","rating":""},{"id":"seed-0096","title":"Chithram (1988)","status":"Completed","rating":""},{"id":"seed-0097","title":"Chocolate (2007)","status":"","rating":""},{"id":"seed-0098","title":"Chotta mumbai","status":"","rating":""},{"id":"seed-0099","title":"Chronic Bachelor","status":"Completed","rating":""},{"id":"seed-0100","title":"Churuli","status":"","rating":""},{"id":"seed-0101","title":"Citizen Kane (1941)","status":"Plan to watch","rating":""},{"id":"seed-0102","title":"City of God","status":"","rating":""},{"id":"seed-0103","title":"Clash of the Titan (2010)","status":"Completed","rating":""},{"id":"seed-0104","title":"Clash of the Titans","status":"Completed","rating":""},{"id":"seed-0105","title":"Classmates","status":"","rating":""},{"id":"seed-0106","title":"Classmates","status":"","rating":""},{"id":"seed-0107","title":"Cocktail (2012)","status":"Plan to watch","rating":""},{"id":"seed-0108","title":"Coco (2017)","status":"Completed","rating":""},{"id":"seed-0109","title":"Constantine: City of Demons","status":"","rating":""},{"id":"seed-0110","title":"Crazy Rich Asians","status":"Completed","rating":3.0},{"id":"seed-0111","title":"Creed","status":"","rating":""},{"id":"seed-0112","title":"Daya (1998)","status":"","rating":""},{"id":"seed-0113","title":"Delhi-6","status":"","rating":""},{"id":"seed-0114","title":"Demolition (2015)","status":"Completed","rating":""},{"id":"seed-0115","title":"Demolition man (1993)","status":"Completed","rating":""},{"id":"seed-0116","title":"Despicable Me","status":"Completed","rating":""},{"id":"seed-0117","title":"Despicable Me 2","status":"Completed","rating":""},{"id":"seed-0118","title":"Dhoom (2004)","status":"Completed","rating":""},{"id":"seed-0119","title":"Dhoom 2 (2008)","status":"Completed","rating":""},{"id":"seed-0120","title":"Die Another Day (2002)","status":"Completed","rating":""},{"id":"seed-0121","title":"Die Hard 1(1988)","status":"","rating":""},{"id":"seed-0122","title":"Die Hard 2 (1990)","status":"","rating":""},{"id":"seed-0123","title":"Die Hard 3 (With a Vengeance) (1995)","status":"","rating":""},{"id":"seed-0124","title":"Dil Se","status":"Plan to watch","rating":""},{"id":"seed-0125","title":"Dilwale","status":"","rating":""},{"id":"seed-0126","title":"Dilwale Dulhania Le Jayenge (1995)","status":"Completed","rating":""},{"id":"seed-0127","title":"Django Unchained","status":"Completed","rating":""},{"id":"seed-0128","title":"Doctor Strange (2016)","status":"Completed","rating":""},{"id":"seed-0129","title":"Doctor Strange in the Multiverse of Madness (2022)","status":"Completed","rating":""},{"id":"seed-0130","title":"Don't Look Up","status":"Completed","rating":""},{"id":"seed-0131","title":"Donnie Darko DIRECTORS CUT (2001)","status":"Completed","rating":""},{"id":"seed-0132","title":"Drishyam","status":"","rating":""},{"id":"seed-0133","title":"Drop dead gorgeous (1999)","status":"","rating":""},{"id":"seed-0134","title":"Dune (2021)","status":"","rating":""},{"id":"seed-0135","title":"Edge of tomorrow","status":"Completed","rating":""},{"id":"seed-0136","title":"Enter the Dragon (1973)","status":"Completed","rating":""},{"id":"seed-0137","title":"Enter The Game Of Death (1978)","status":"Completed","rating":""},{"id":"seed-0138","title":"Eternals (2022)","status":"Completed","rating":""},{"id":"seed-0139","title":"Ex machina","status":"","rating":""},{"id":"seed-0140","title":"Exodus : Gods and Kings (2014)","status":"Completed","rating":8.0},{"id":"seed-0141","title":"Fast & Furious (2001)","status":"Completed","rating":""},{"id":"seed-0142","title":"Fast and Furious 4 (2009)","status":"Completed","rating":""},{"id":"seed-0143","title":"Fast and the Furious - 5","status":"Completed","rating":""},{"id":"seed-0144","title":"Fast and the Furious - 6","status":"Completed","rating":""},{"id":"seed-0145","title":"Fast X","status":"Completed","rating":2.0},{"id":"seed-0146","title":"Fifty Shades Darker (2017)","status":"","rating":""},{"id":"seed-0147","title":"Fifty Shades Freed (2018)","status":"","rating":""},{"id":"seed-0148","title":"Fifty Shades of Grey (2015)","status":"","rating":""},{"id":"seed-0149","title":"Fight Club","status":"Completed","rating":""},{"id":"seed-0150","title":"Final Destination","status":"Completed","rating":""},{"id":"seed-0151","title":"Final Destination 2","status":"","rating":""},{"id":"seed-0152","title":"Final Destination 3","status":"","rating":""},{"id":"seed-0153","title":"Final Destination 4","status":"","rating":""},{"id":"seed-0154","title":"Final Destination 5","status":"","rating":""},{"id":"seed-0155","title":"Fist Of Fury (1972)","status":"Completed","rating":""},{"id":"seed-0156","title":"Forrest Gump (1994)","status":"Completed","rating":""},{"id":"seed-0157","title":"French Kiss (1995)","status":"Completed","rating":4.0},{"id":"seed-0158","title":"Friends Malayalam","status":"Completed","rating":4.0},{"id":"seed-0159","title":"Frozen","status":"Completed","rating":""},{"id":"seed-0160","title":"Furious 7 (2015)","status":"Completed","rating":""},{"id":"seed-0161","title":"Game Of Death II (1981)","status":"Completed","rating":""},{"id":"seed-0162","title":"Gandhinagar 2nd Street","status":"Completed","rating":7.0},{"id":"seed-0163","title":"Gentleman (1993)","status":"Plan to watch","rating":""},{"id":"seed-0164","title":"Ghajini (2005)","status":"Completed","rating":""},{"id":"seed-0165","title":"Ghajini (2008)","status":"Completed","rating":""},{"id":"seed-0166","title":"Ghajini (2008)","status":"Completed","rating":""},{"id":"seed-0167","title":"Gladiator (2000)","status":"Completed","rating":9.5},{"id":"seed-0168","title":"Godfather (malayalam)","status":"Completed","rating":""},{"id":"seed-0169","title":"Godha (2017)","status":"Completed","rating":""},{"id":"seed-0170","title":"Gone Girl (2014)","status":"Completed","rating":""},{"id":"seed-0171","title":"Gone with the wind (1939)","status":"Plan to watch","rating":""},{"id":"seed-0172","title":"Goodfellas (1990)","status":"Completed","rating":8.0},{"id":"seed-0173","title":"Grown ups (2010)","status":"Completed","rating":3.0},{"id":"seed-0174","title":"Guardians of the Galaxy (2014)","status":"Completed","rating":""},{"id":"seed-0175","title":"Hallo","status":"Completed","rating":""},{"id":"seed-0176","title":"Hallo (2007)","status":"Completed","rating":5.0},{"id":"seed-0177","title":"Harry Potter and the Chamber of Secrets (2002)","status":"Completed","rating":""},{"id":"seed-0178","title":"Harry Potter and the Deathly Hallows Part 1 (2010)","status":"Completed","rating":""},{"id":"seed-0179","title":"Harry Potter And The Deathly Hallows Part 2 (2011)","status":"Completed","rating":""},{"id":"seed-0180","title":"Harry Potter and the Goblet of Fire (2005)","status":"Completed","rating":""},{"id":"seed-0181","title":"Harry Potter and the Half Blood Prince (2009)","status":"Completed","rating":""},{"id":"seed-0182","title":"Harry Potter and the Order of the Phoenix (2007)","status":"Completed","rating":""},{"id":"seed-0183","title":"Harry Potter and the Prisoner of Azkaban (2004)","status":"Completed","rating":""},{"id":"seed-0184","title":"Harry Potter and the Sorcerers Stone (2001)","status":"Completed","rating":""},{"id":"seed-0185","title":"Hitch (2005)","status":"Completed","rating":""},{"id":"seed-0186","title":"Hitman (2007)","status":"Completed","rating":""},{"id":"seed-0187","title":"Home Alone (1990)","status":"Completed","rating":6.0},{"id":"seed-0188","title":"Home Alone 2","status":"Completed","rating":""},{"id":"seed-0189","title":"Home Alone 3","status":"Completed","rating":""},{"id":"seed-0190","title":"Home Alone 4","status":"Completed","rating":""},{"id":"seed-0191","title":"Home Alone 5","status":"Completed","rating":""},{"id":"seed-0192","title":"How the grinch stole christmas (2000)","status":"Completed","rating":""},{"id":"seed-0193","title":"How to lose a guy in 10 days","status":"Completed","rating":""},{"id":"seed-0194","title":"How to Train Your Dragon (2010)","status":"Completed","rating":""},{"id":"seed-0195","title":"How to Train Your Dragon 2 (2014)","status":"Completed","rating":""},{"id":"seed-0196","title":"Hulk (2003)","status":"Completed","rating":""},{"id":"seed-0197","title":"I am mother","status":"","rating":""},{"id":"seed-0198","title":"I know what you did last summer","status":"","rating":""},{"id":"seed-0199","title":"I Saw the Devil (2010)","status":"","rating":""},{"id":"seed-0200","title":"ice age 1","status":"Completed","rating":""},{"id":"seed-0201","title":"ice age 2","status":"Completed","rating":""},{"id":"seed-0202","title":"ice age 3","status":"Completed","rating":""},{"id":"seed-0203","title":"ice age 4","status":"Completed","rating":""},{"id":"seed-0204","title":"Indian (1996)","status":"Plan to watch","rating":""},{"id":"seed-0205","title":"Indiana Jones And The Kingdom of the Crystal Skull(2008)","status":"","rating":""},{"id":"seed-0206","title":"Indiana Jones And The Last Crusad(1989)","status":"","rating":""},{"id":"seed-0207","title":"Indiana Jones And The Raiders Of The Lost Ark (1981)","status":"","rating":""},{"id":"seed-0208","title":"Indiana Jones And The Temple Of Doom (1984)","status":"","rating":""},{"id":"seed-0209","title":"Inglorious Basterds (2009)","status":"Completed","rating":""},{"id":"seed-0210","title":"Innale 1990","status":"","rating":""},{"id":"seed-0211","title":"Insidious (2010)","status":"","rating":""},{"id":"seed-0212","title":"Insidious Chapter 2 (2013)","status":"","rating":""},{"id":"seed-0213","title":"Insidious Chapter 3 (2015)","status":"","rating":""},{"id":"seed-0214","title":"Iron Man (2008)","status":"Completed","rating":""},{"id":"seed-0215","title":"Iron Man 2 (2010)","status":"Completed","rating":""},{"id":"seed-0216","title":"Iron Man 3 (2013)","status":"Dropped","rating":""},{"id":"seed-0217","title":"Ishq (1997)","status":"","rating":""},{"id":"seed-0218","title":"Ishq (2019)","status":"","rating":""},{"id":"seed-0219","title":"Iyobinte Pusthakam (2014)","status":"Completed","rating":""},{"id":"seed-0220","title":"Jaane Tu... Ya Jaane Na (2008)","status":"Plan to watch","rating":""},{"id":"seed-0221","title":"Jab We Met (2007)","status":"Completed","rating":""},{"id":"seed-0222","title":"James.Bond.007.A.View.To.A.Kill.1985","status":"","rating":""},{"id":"seed-0223","title":"Jeans (1998)","status":"Completed","rating":""},{"id":"seed-0224","title":"Jerry Maguire (1996)","status":"","rating":""},{"id":"seed-0225","title":"Jingle All the Way","status":"Completed","rating":""},{"id":"seed-0226","title":"John Wick Chapter 2 2017","status":"","rating":""},{"id":"seed-0227","title":"John.Wick.2014.","status":"","rating":""},{"id":"seed-0228","title":"Johnny English [2003]","status":"","rating":""},{"id":"seed-0229","title":"Johnny English Reborn 2011","status":"","rating":""},{"id":"seed-0230","title":"Joji (2021)","status":"Completed","rating":""},{"id":"seed-0231","title":"JoJo Rabbit","status":"Completed","rating":""},{"id":"seed-0232","title":"Joker","status":"Completed","rating":""},{"id":"seed-0233","title":"Jurassic World (2015)","status":"","rating":""},{"id":"seed-0234","title":"Jurassic.Park.III[2001]","status":"","rating":""},{"id":"seed-0235","title":"Jurassic.Park[1993]","status":"","rating":""},{"id":"seed-0236","title":"Justic League Jack Snyders Cut (2021)","status":"Completed","rating":""},{"id":"seed-0237","title":"Justice League : The Flashpoint Paradox (2013)","status":"Completed","rating":""},{"id":"seed-0238","title":"Justice League : Throne of Atlantis (2015)","status":"Completed","rating":""},{"id":"seed-0239","title":"Justice League : War ","status":"Completed","rating":""},{"id":"seed-0240","title":"Justice League (2017)","status":"Completed","rating":""},{"id":"seed-0241","title":"Justice League Dark","status":"","rating":""},{"id":"seed-0242","title":"Justice League Dark : Apokolips War ","status":"Completed","rating":""},{"id":"seed-0243","title":"Justice League Dark: Apokolips War","status":"Completed","rating":""},{"id":"seed-0244","title":"Justice League vs. Teen Titans","status":"","rating":""},{"id":"seed-0245","title":"K.G.F. Chapter 1","status":"Completed","rating":""},{"id":"seed-0246","title":"Kabhi Khushi Kabhie Gham... (2001) ","status":"Completed","rating":""},{"id":"seed-0247","title":"Kadhal Desam (1996)","status":"Completed","rating":""},{"id":"seed-0248","title":"Kadhalan (1994)","status":"Completed","rating":""},{"id":"seed-0249","title":"Kadhalar Dhinam (1999)","status":"Completed","rating":""},{"id":"seed-0250","title":"Kal Ho Naa Ho","status":"Completed","rating":5.0},{"id":"seed-0251","title":"Kalyanaraman","status":"Completed","rating":""},{"id":"seed-0252","title":"Kerala Cafe","status":"","rating":""},{"id":"seed-0253","title":"Kill Bill Vol 1 (2003) [1080p]","status":"Completed","rating":""},{"id":"seed-0254","title":"Kill Bill Vol 2 (2004) [1080p]","status":"Completed","rating":""},{"id":"seed-0255","title":"KILUKKAM (1991)","status":"Completed","rating":6.0},{"id":"seed-0256","title":"Kingdom of Heaven (2005)","status":"Completed","rating":10.0},{"id":"seed-0257","title":"KO (2011)","status":"Completed","rating":""},{"id":"seed-0258","title":"Kochi Rajavu ","status":"Completed","rating":""},{"id":"seed-0259","title":"Kooman (2022)","status":"Completed","rating":""},{"id":"seed-0260","title":"Kuch Kuch Hota Hai","status":"Completed","rating":""},{"id":"seed-0261","title":"Kumbalangi Nights (2019)","status":"Completed","rating":""},{"id":"seed-0262","title":"Kung Fu Panda","status":"Completed","rating":""},{"id":"seed-0263","title":"Kung Fu Panda 2","status":"Completed","rating":""},{"id":"seed-0264","title":"Kung Fu Panda 3","status":"Completed","rating":""},{"id":"seed-0265","title":"Legend of Zorro (2005)","status":"Completed","rating":""},{"id":"seed-0266","title":"lego marvel maximum overload","status":"Completed","rating":2.0},{"id":"seed-0267","title":"Life Is Beautiful (1997)","status":"Completed","rating":""},{"id":"seed-0268","title":"Live Free or Die Hard 4 (2007)","status":"","rating":""},{"id":"seed-0269","title":"Logan (2017)","status":"Completed","rating":""},{"id":"seed-0270","title":"Lolita (1962)","status":"Completed","rating":6.0},{"id":"seed-0271","title":"Lord of the Rings Fellowship of the Ring (2001)","status":"Completed","rating":""},{"id":"seed-0272","title":"Lord of the Rings Return of the King (2003)","status":"Completed","rating":""},{"id":"seed-0273","title":"Lord of the Rings Two towers (2002)","status":"Completed","rating":""},{"id":"seed-0274","title":"Love & Other Drugs (2010)","status":"Completed","rating":""},{"id":"seed-0275","title":"M3GAN (2023)","status":"Completed","rating":4.0},{"id":"seed-0276","title":"Maari","status":"Completed","rating":""},{"id":"seed-0277","title":"Maheshinte Prathikaaram [2016]","status":"Completed","rating":""},{"id":"seed-0278","title":"Mampazhakkalam","status":"Completed","rating":""},{"id":"seed-0279","title":"Man of Steel (2013)","status":"Completed","rating":""},{"id":"seed-0280","title":"Manichithrathazhu","status":"Completed","rating":""},{"id":"seed-0281","title":"Manjummel boys (2024)","status":"Completed","rating":""},{"id":"seed-0282","title":"Mannar Mathai Speaking","status":"Completed","rating":""},{"id":"seed-0283","title":"Master (2021)","status":"Completed","rating":""},{"id":"seed-0284","title":"Mean girls","status":"Completed","rating":""},{"id":"seed-0285","title":"Meesha Madhavan","status":"Completed","rating":""},{"id":"seed-0286","title":"Megamind (2010)","status":"Completed","rating":""},{"id":"seed-0287","title":"Meleparambil Anveedu","status":"Completed","rating":""},{"id":"seed-0288","title":"Men In Black (1997)","status":"Completed","rating":""},{"id":"seed-0289","title":"Men In Black (2012)","status":"Completed","rating":""},{"id":"seed-0290","title":"Men In Black II (2002)","status":"Completed","rating":""},{"id":"seed-0291","title":"Minions (2015)","status":"Completed","rating":""},{"id":"seed-0292","title":"Minnal Murali","status":"Completed","rating":""},{"id":"seed-0293","title":"Minnale","status":"Plan to watch","rating":""},{"id":"seed-0294","title":"Miss Congeniality (2000)","status":"Completed","rating":5.0},{"id":"seed-0295","title":"Mohabbatein (2000)","status":"Completed","rating":7.0},{"id":"seed-0296","title":"Mr. Bean's Holiday","status":"Completed","rating":""},{"id":"seed-0297","title":"Mrugaya","status":"","rating":""},{"id":"seed-0298","title":"Mumbai Poilce","status":"","rating":""},{"id":"seed-0299","title":"Munnariyippu","status":"","rating":""},{"id":"seed-0300","title":"Muthu","status":"Completed","rating":7.0},{"id":"seed-0301","title":"Muthu (1993)","status":"Completed","rating":""},{"id":"seed-0302","title":"My Cousin Vinny (1992)","status":"Completed","rating":7.0},{"id":"seed-0303","title":"My Cousin Vinny (1992)","status":"Completed","rating":""},{"id":"seed-0304","title":"My Dear Kuttichathan","status":"Completed","rating":5.0},{"id":"seed-0305","title":"My Wife Is A Gangster 3","status":"","rating":""},{"id":"seed-0306","title":"Nadodikkattu (1987)","status":"Completed","rating":7.0},{"id":"seed-0307","title":"Naran (2005)","status":"Completed","rating":""},{"id":"seed-0308","title":"Narasimham (2000)","status":"Completed","rating":""},{"id":"seed-0309","title":"New Fist of Fury (1976)","status":"Completed","rating":""},{"id":"seed-0310","title":"New Police Story","status":"Completed","rating":""},{"id":"seed-0311","title":"Nightcrawler (2014)","status":"Completed","rating":""},{"id":"seed-0312","title":"No Hard Feelings (2023)","status":"Completed","rating":""},{"id":"seed-0313","title":"No Time To Die (2021)","status":"","rating":""},{"id":"seed-0314","title":"Nocturnal Animals (2016)","status":"","rating":""},{"id":"seed-0315","title":"North 24 Kaatham","status":"","rating":""},{"id":"seed-0316","title":"Notebook (2006)","status":"Completed","rating":6.0},{"id":"seed-0317","title":"Now you see me","status":"Completed","rating":""},{"id":"seed-0318","title":"Now You See Me 2","status":"Dropped","rating":""},{"id":"seed-0319","title":"Ocean's 11","status":"Completed","rating":""},{"id":"seed-0320","title":"Oceans Eleven (2001)","status":"Completed","rating":""},{"id":"seed-0321","title":"Oceans Thirteen (2007)","status":"Completed","rating":""},{"id":"seed-0322","title":"Oceans Twelve (2004)","status":"Completed","rating":""},{"id":"seed-0323","title":"Office Space (1999)","status":"","rating":""},{"id":"seed-0324","title":"Oldboy (2003)","status":"Completed","rating":""},{"id":"seed-0325","title":"Om shanti om","status":"Completed","rating":""},{"id":"seed-0326","title":"Once Upon a Time in the West (1968)","status":"","rating":""},{"id":"seed-0327","title":"One Flew Over The Cuckoo's Nest (1975)","status":"","rating":""},{"id":"seed-0328","title":"Orphan (2009)","status":"Completed","rating":""},{"id":"seed-0329","title":"Padayottam (1982 film)","status":"","rating":""},{"id":"seed-0330","title":"Paiya","status":"Completed","rating":""},{"id":"seed-0331","title":"pandipada","status":"Completed","rating":""},{"id":"seed-0332","title":"Parasite (2019)","status":"Completed","rating":""},{"id":"seed-0333","title":"Pattalam","status":"","rating":""},{"id":"seed-0334","title":"Pattanapravesham (1988)","status":"Completed","rating":7.0},{"id":"seed-0335","title":"Pirates of the Caribbean At World's End (2007).mkv","status":"Completed","rating":""},{"id":"seed-0336","title":"Pirates of the Caribbean Curse of the Black Pearl (2003)","status":"Completed","rating":""},{"id":"seed-0337","title":"Pirates of the Caribbean Dead Man's Chest (2006)","status":"Completed","rating":""},{"id":"seed-0338","title":"Pirates of the Caribbean On Stranger Tides (2011)","status":"Completed","rating":""},{"id":"seed-0339","title":"Pirates of the Carribean - Dead Men Tell No Tales","status":"Completed","rating":""},{"id":"seed-0340","title":"Pranayavarnangal","status":"","rating":""},{"id":"seed-0341","title":"Premalu (2024)","status":"Completed","rating":""},{"id":"seed-0342","title":"Pretty in pink (1986)","status":"Completed","rating":7.0},{"id":"seed-0343","title":"Pretty woman (1990)","status":"Completed","rating":""},{"id":"seed-0344","title":"Prince of Persia (2010)","status":"Completed","rating":""},{"id":"seed-0345","title":"Project X (2012)","status":"Completed","rating":""},{"id":"seed-0346","title":"Prometheus (2012)","status":"","rating":""},{"id":"seed-0347","title":"Psycho (1960)","status":"Completed","rating":7.0},{"id":"seed-0348","title":"Pubic Enemies (2009)","status":"","rating":""},{"id":"seed-0349","title":"Pulp Fiction (1994)","status":"Completed","rating":""},{"id":"seed-0350","title":"Punjabi House","status":"Completed","rating":""},{"id":"seed-0351","title":"Punjabi House (1998)","status":"Completed","rating":""},{"id":"seed-0352","title":"Pyaar To Hona Hi Tha (1998)","status":"Completed","rating":""},{"id":"seed-0353","title":"Quantum of Solace (2008)","status":"Completed","rating":""},{"id":"seed-0354","title":"Raging Bull (1980)","status":"","rating":""},{"id":"seed-0355","title":"Rajamanikyam","status":"Completed","rating":""},{"id":"seed-0356","title":"Ralph Breaks The Internet (2018)","status":"Plan to watch","rating":""},{"id":"seed-0357","title":"Ramaiya Vastavaiya","status":"","rating":""},{"id":"seed-0358","title":"Ramji Rao Speaking","status":"Completed","rating":""},{"id":"seed-0359","title":"Reign of the Supermen","status":"","rating":""},{"id":"seed-0360","title":"Requiem for a Dream DIRECTORS CUT (2000)","status":"","rating":""},{"id":"seed-0361","title":"Richie Rich (1994)","status":"Completed","rating":""},{"id":"seed-0362","title":"Road To Perdition","status":"","rating":""},{"id":"seed-0363","title":"Rob-B-Hood (2006)","status":"Completed","rating":""},{"id":"seed-0364","title":"Rogue One","status":"","rating":""},{"id":"seed-0365","title":"Roja","status":"Completed","rating":""},{"id":"seed-0366","title":"Romeo + Juliet","status":"","rating":""},{"id":"seed-0367","title":"Rudy (1993)","status":"Completed","rating":""},{"id":"seed-0368","title":"Rush","status":"Completed","rating":""},{"id":"seed-0369","title":"Rush Hour (1998)","status":"Completed","rating":""},{"id":"seed-0370","title":"Rush Hour 2 (2001)","status":"Completed","rating":""},{"id":"seed-0371","title":"Rush Hour 3 (2007)","status":"Completed","rating":""},{"id":"seed-0372","title":"Salt N' Pepper","status":"Completed","rating":7.5},{"id":"seed-0373","title":"Sanmanassullavarkku Samadhanam","status":"Completed","rating":""},{"id":"seed-0374","title":"Saving Private Ryan (1998)","status":"Completed","rating":""},{"id":"seed-0375","title":"Say Anything (1989)","status":"Completed","rating":""},{"id":"seed-0376","title":"Scarface (1983)","status":"Completed","rating":""},{"id":"seed-0377","title":"Scent of a Woman (1992)","status":"Completed","rating":""},{"id":"seed-0378","title":"Schindlers List (1993)","status":"Completed","rating":""},{"id":"seed-0379","title":"Scott Pilgrim vs. the World","status":"Plan to watch","rating":""},{"id":"seed-0380","title":"She's Out of my League","status":"Completed","rating":6.0},{"id":"seed-0381","title":"She's the man (2006)","status":"Completed","rating":""},{"id":"seed-0382","title":"Sherlock Holmes (2009)","status":"Completed","rating":""},{"id":"seed-0383","title":"Shutter Island (2010)","status":"Completed","rating":""},{"id":"seed-0384","title":"Sillunu Oru Kadhal","status":"Plan to watch","rating":""},{"id":"seed-0385","title":"Sixteen candles (1984)","status":"Completed","rating":7.0},{"id":"seed-0386","title":"Skyfall (2012)","status":"Completed","rating":""},{"id":"seed-0387","title":"Sleepless in Seattle (1993)","status":"Completed","rating":6.5},{"id":"seed-0388","title":"Sliver","status":"","rating":""},{"id":"seed-0389","title":"Slumdog Millionaire (2008)","status":"Completed","rating":""},{"id":"seed-0390","title":"Snatch (2000)","status":"","rating":""},{"id":"seed-0391","title":"Solo","status":"","rating":""},{"id":"seed-0392","title":"Son of Batman (2014)","status":"Completed","rating":""},{"id":"seed-0393","title":"Source Code","status":"","rating":""},{"id":"seed-0394","title":"Spectre (2015)","status":"","rating":""},{"id":"seed-0395","title":"Speed (1994)","status":"Completed","rating":7.0},{"id":"seed-0396","title":"Spider-Man (2002)","status":"Completed","rating":""},{"id":"seed-0397","title":"Spider-Man 2 (2004)","status":"Completed","rating":""},{"id":"seed-0398","title":"Spider-Man 3 (2007)","status":"Completed","rating":""},{"id":"seed-0399","title":"Spider-man across the spiderverse (2023)","status":"Completed","rating":7.0},{"id":"seed-0400","title":"Spider-Man Homecoming (2017)","status":"Completed","rating":""},{"id":"seed-0401","title":"Spider-Man_ Into the Spider-Verse.mkv","status":"Completed","rating":""},{"id":"seed-0402","title":"Spider-Man: No Way Home (2022)","status":"Completed","rating":""},{"id":"seed-0403","title":"Spotlight (2015)","status":"","rating":""},{"id":"seed-0404","title":"Spy kids 1","status":"Completed","rating":""},{"id":"seed-0405","title":"Spy kids 2","status":"Completed","rating":""},{"id":"seed-0406","title":"Spy kids 3","status":"Completed","rating":""},{"id":"seed-0407","title":"Spy kids 4","status":"Completed","rating":""},{"id":"seed-0408","title":"Star Wars Episode 1","status":"Completed","rating":""},{"id":"seed-0409","title":"Star Wars Episode 2","status":"Completed","rating":""},{"id":"seed-0410","title":"Star Wars Episode 3","status":"Completed","rating":""},{"id":"seed-0411","title":"Star Wars Episode 4","status":"Completed","rating":""},{"id":"seed-0412","title":"Star Wars Episode 5","status":"Completed","rating":""},{"id":"seed-0413","title":"Star Wars Episode 6","status":"Completed","rating":""},{"id":"seed-0414","title":"Star Wars Episode 7 - The Force Awakens","status":"Completed","rating":""},{"id":"seed-0415","title":"Star Wars Episode 8 - The Last Jedi (2017)","status":"Completed","rating":""},{"id":"seed-0416","title":"Star Wars Episode 9 - The Rise Of Skywalker (2019)","status":"Completed","rating":""},{"id":"seed-0417","title":"Straight Outta Compton (2015)","status":"Completed","rating":""},{"id":"seed-0418","title":"Suicide Squad: Hell to Pay","status":"","rating":""},{"id":"seed-0419","title":"Summer In Bethlehem (1998)","status":"Completed","rating":""},{"id":"seed-0420","title":"Superbad","status":"Completed","rating":""},{"id":"seed-0421","title":"Teen Titans: The Judas Contract","status":"","rating":""},{"id":"seed-0422","title":"Tenet (2020)","status":"","rating":""},{"id":"seed-0423","title":"Terminator 1","status":"Completed","rating":""},{"id":"seed-0424","title":"Terminator 2","status":"Completed","rating":""},{"id":"seed-0425","title":"Terminator 3","status":"Completed","rating":""},{"id":"seed-0426","title":"Terminator Dark Fate","status":"","rating":""},{"id":"seed-0427","title":"Terminator Genisys","status":"Completed","rating":""},{"id":"seed-0428","title":"thanneer mathan dinangal (2019)","status":"Completed","rating":""},{"id":"seed-0429","title":"Thattathin marayathu","status":"Completed","rating":""},{"id":"seed-0430","title":"The Amazing Spiderman","status":"Completed","rating":""},{"id":"seed-0431","title":"The Amazing Spiderman (2012)","status":"Completed","rating":""},{"id":"seed-0432","title":"The Avengers (2012)","status":"Completed","rating":""},{"id":"seed-0433","title":"The Bad Seed (2018)","status":"","rating":""},{"id":"seed-0434","title":"The Big Boss (1971)","status":"","rating":""},{"id":"seed-0435","title":"The Blind Side (2009)","status":"Completed","rating":""},{"id":"seed-0436","title":"The Bourne Identity[2002]","status":"","rating":""},{"id":"seed-0437","title":"The Bourne Supremacy[2004]","status":"","rating":""},{"id":"seed-0438","title":"The Bourne Ultimatum (2007)","status":"","rating":""},{"id":"seed-0439","title":"The Curious Case of Benjamin Button (2008)","status":"","rating":""},{"id":"seed-0440","title":"The Dark Knight","status":"Completed","rating":""},{"id":"seed-0441","title":"The Dark Knight Rises","status":"Completed","rating":""},{"id":"seed-0442","title":"The Death of Superman","status":"","rating":""},{"id":"seed-0443","title":"The Fast and the Furious 3 Tokyo Drift (2006)","status":"Completed","rating":""},{"id":"seed-0444","title":"The Flash (2023)","status":"Completed","rating":6.0},{"id":"seed-0445","title":"The Girl Next Door [2004]","status":"Completed","rating":""},{"id":"seed-0446","title":"The Godfather (1972)","status":"Completed","rating":""},{"id":"seed-0447","title":"The Godfather 2 (1974)","status":"Completed","rating":""},{"id":"seed-0448","title":"The Godfather Part 3 (1990)","status":"Completed","rating":""},{"id":"seed-0449","title":"The Green Mile (1999)","status":"Completed","rating":""},{"id":"seed-0450","title":"The Hitchhiker's Guide to the Galaxy (2005)","status":"","rating":""},{"id":"seed-0451","title":"The Hobbit An Unexpected Journey (2012)","status":"Completed","rating":""},{"id":"seed-0452","title":"The Hobbit The Battle of the Five Armies (2014)","status":"Completed","rating":""},{"id":"seed-0453","title":"The Hobbit The Desolation of Smaug (2013)","status":"Completed","rating":""},{"id":"seed-0454","title":"The Hunger Games (2012)","status":"Completed","rating":""},{"id":"seed-0455","title":"The Hunger Games Catching Fire (2013)","status":"Completed","rating":""},{"id":"seed-0456","title":"The Hunger Games Mockingjay Part 1 (2014)","status":"Completed","rating":""},{"id":"seed-0457","title":"The Hunger Games Mockingjay Part 2 (2015)","status":"","rating":""},{"id":"seed-0458","title":"The Incredible Hulk (2008)","status":"Completed","rating":""},{"id":"seed-0459","title":"The Irishman (2019)","status":"","rating":""},{"id":"seed-0460","title":"The King's Speech (2010)","status":"","rating":""},{"id":"seed-0461","title":"The LEGO Batman Movie","status":"Completed","rating":""},{"id":"seed-0462","title":"the lion king","status":"Completed","rating":""},{"id":"seed-0463","title":"the lion king (2019)","status":"Completed","rating":""},{"id":"seed-0464","title":"The Lone Ranger (2013)","status":"Completed","rating":""},{"id":"seed-0465","title":"The longest yard (2005)","status":"Completed","rating":""},{"id":"seed-0466","title":"The Lost World - Jurassic Park (1997)","status":"","rating":""},{"id":"seed-0467","title":"The Martian (2015)","status":"Completed","rating":""},{"id":"seed-0468","title":"The Mask Of Zorro (1998)","status":"Completed","rating":""},{"id":"seed-0469","title":"The Myth (2005)","status":"Completed","rating":""},{"id":"seed-0470","title":"The Notebook","status":"Plan to watch","rating":""},{"id":"seed-0471","title":"The Omen (1976)","status":"","rating":""},{"id":"seed-0472","title":"The Omen (2006)","status":"","rating":""},{"id":"seed-0473","title":"The Omen 1","status":"","rating":""},{"id":"seed-0474","title":"The Omen 2","status":"","rating":""},{"id":"seed-0475","title":"The Omen 3","status":"","rating":""},{"id":"seed-0476","title":"The Omen 4","status":"","rating":""},{"id":"seed-0477","title":"The Omen 5","status":"","rating":""},{"id":"seed-0478","title":"The other woman (2014)","status":"Completed","rating":""},{"id":"seed-0479","title":"The Pianist","status":"","rating":""},{"id":"seed-0480","title":"The Proposal (2009)","status":"Completed","rating":""},{"id":"seed-0481","title":"The Pursuit of Happyness (2006)","status":"Completed","rating":""},{"id":"seed-0482","title":"The Secret Life Of Walter Mitty","status":"Completed","rating":""},{"id":"seed-0483","title":"The Shape Of Water (2017)","status":"","rating":""},{"id":"seed-0484","title":"The Shining (1980)","status":"Completed","rating":""},{"id":"seed-0485","title":"The Social Network (2010) [1080]","status":"Completed","rating":""},{"id":"seed-0486","title":"The Speed Track (2007)","status":"Completed","rating":""},{"id":"seed-0487","title":"The sure thing (1985)","status":"Completed","rating":6.0},{"id":"seed-0488","title":"The theory of everything ","status":"Completed","rating":6.5},{"id":"seed-0489","title":"The Wolf of Wall Street (2013)","status":"Completed","rating":""},{"id":"seed-0490","title":"The World Is Not Enough (1999)","status":"Completed","rating":""},{"id":"seed-0491","title":"Thenmavin Kombath","status":"","rating":""},{"id":"seed-0492","title":"Thoovanathumbikal (1987)","status":"Completed","rating":""},{"id":"seed-0493","title":"Thor (2011)","status":"Completed","rating":""},{"id":"seed-0494","title":"Thor Ragnarok (2017)","status":"Completed","rating":""},{"id":"seed-0495","title":"Thor The Dark World (2013)","status":"Completed","rating":""},{"id":"seed-0496","title":"Toy Story 3 (2010)","status":"Completed","rating":""},{"id":"seed-0497","title":"Toy.Story.1.1995","status":"Completed","rating":""},{"id":"seed-0498","title":"Toy.Story.2.1999","status":"Completed","rating":""},{"id":"seed-0499","title":"Trance (2020 film)","status":"Completed","rating":""},{"id":"seed-0500","title":"Transendence","status":"","rating":""},{"id":"seed-0501","title":"Troy (2004)","status":"Completed","rating":""},{"id":"seed-0502","title":"True Lies","status":"Completed","rating":""},{"id":"seed-0503","title":"Undisputed (2002)","status":"","rating":""},{"id":"seed-0504","title":"Undisputed 2 Last Man Standing (2006)","status":"","rating":""},{"id":"seed-0505","title":"Undisputed 3 Redemption (2010)","status":"","rating":""},{"id":"seed-0506","title":"Up (2015)","status":"Completed","rating":""},{"id":"seed-0507","title":"Ustad Hotel","status":"Completed","rating":""},{"id":"seed-0508","title":"V for Vendetta (2006)","status":"Completed","rating":""},{"id":"seed-0509","title":"Vaaranam Aayiram","status":"Plan to watch","rating":""},{"id":"seed-0510","title":"Vandanam","status":"Completed","rating":7.0},{"id":"seed-0511","title":"Vandanam","status":"Completed","rating":""},{"id":"seed-0512","title":"Vellanakalude Nadu","status":"","rating":""},{"id":"seed-0513","title":"veruthe oru bharya","status":"Completed","rating":1.0},{"id":"seed-0514","title":"Vettam (2004)","status":"Completed","rating":""},{"id":"seed-0515","title":"Vinnaithaandi Varuvaayaa","status":"Plan to watch","rating":""},{"id":"seed-0516","title":"When harry met sally","status":"Completed","rating":5.0},{"id":"seed-0517","title":"Wild Things (1998)","status":"","rating":""},{"id":"seed-0518","title":"Wild Things 2 (2004)","status":"","rating":""},{"id":"seed-0519","title":"Wild Things 3 (2005)","status":"","rating":""},{"id":"seed-0520","title":"Wonder Woman (2017)","status":"Completed","rating":""},{"id":"seed-0521","title":"Wonder Woman: Bloodlines","status":"","rating":""},{"id":"seed-0522","title":"Wrath of the Titans","status":"Plan to watch","rating":""},{"id":"seed-0523","title":"Wreck-It Ralph (2012)","status":"Completed","rating":""},{"id":"seed-0524","title":"X-Men 1","status":"Completed","rating":""},{"id":"seed-0525","title":"X-Men 2","status":"Completed","rating":""},{"id":"seed-0526","title":"X-Men 3 (2006)","status":"Completed","rating":""},{"id":"seed-0527","title":"X-Men 4 (2009) Origins Wolverine","status":"Completed","rating":""},{"id":"seed-0528","title":"X-Men 5 (2011) First Class ","status":"Completed","rating":""},{"id":"seed-0529","title":"X-Man 6 (2013) The Wolverine","status":"Completed","rating":""},{"id":"seed-0530","title":"X-Men 7 (2014) Days of Future Past","status":"Completed","rating":""},{"id":"seed-0531","title":"Yeh Jawaani Hai Deewani (2013)","status":"Completed","rating":7.0},{"id":"seed-0532","title":"Zodiac (2007)","status":"Completed","rating":8.0},{"id":"seed-0533","title":"Romancham (2023)","status":"Completed","rating":6.0},{"id":"seed-0534","title":"Thallumala (2022)","status":"Completed","rating":7.0},{"id":"seed-0535","title":"Mukundan Unni Associates (2022)","status":"","rating":""},{"id":"seed-0536","title":"Super Sharanya (2022)","status":"","rating":""},{"id":"seed-0537","title":"Abigail (2024)","status":"Completed","rating":4.0},{"id":"seed-0538","title":"South Park : The end of Obesity (2024)","status":"Completed","rating":5.0},{"id":"seed-0539","title":"Oppenheimer (2023)","status":"Completed","rating":6.5},{"id":"seed-0540","title":"Blue Streak (1999)","status":"Completed","rating":""},{"id":"seed-0541","title":"Dostana","status":"","rating":""},{"id":"seed-0542","title":"First Knight","status":"Completed","rating":6.5},{"id":"seed-0543","title":"The King's Speech","status":"","rating":""},{"id":"seed-0544","title":"Dragonheart","status":"","rating":""},{"id":"seed-0545","title":"Alexander (2004)","status":"Completed","rating":8.0},{"id":"seed-0546","title":"The count of monte cristo (2002)","status":"Completed","rating":6.5},{"id":"seed-0547","title":"Jumper (2008)","status":"Completed","rating":""},{"id":"seed-0548","title":"V. I. P. (1997 film)","status":"","rating":""},{"id":"seed-0549","title":"Minnale (2001)","status":"Completed","rating":7.5},{"id":"seed-0550","title":"O Kadhal Kanmani","status":"","rating":""},{"id":"seed-0551","title":"Mark Antony (2023)","status":"","rating":""},{"id":"seed-0552","title":"Bad Boys (1995)","status":"Completed","rating":6.0},{"id":"seed-0553","title":"Bad Boys 2 (2003)","status":"Completed","rating":6.0},{"id":"seed-0554","title":"Pawn Sacrifice (2014)","status":"Completed","rating":5.0},{"id":"seed-0555","title":"Kalki 2898 AD (2024)","status":"Completed","rating":5.0},{"id":"seed-0556","title":"Veer-zaara (2004)","status":"Completed","rating":6.0},{"id":"seed-0557","title":"The Man Who Knew Infinity (2015)","status":"Completed","rating":""},{"id":"seed-0558","title":"Ravanaprabhu (2001)","status":"Completed","rating":6.5},{"id":"seed-0559","title":"Passenger (2009)","status":"Completed","rating":7.5},{"id":"seed-0560","title":"Big B (2007)","status":"Completed","rating":5.0},{"id":"seed-0561","title":"My Wife Is A Gangster 3","status":"","rating":""},{"id":"seed-0562","title":"Bhaag Milkha Bhaag","status":"Completed","rating":""},{"id":"seed-0563","title":"No Time to Die (2021)","status":"","rating":""},{"id":"seed-0564","title":"Rehna Hai Tere Dil Mein (2001)","status":"Completed","rating":6.0},{"id":"seed-0565","title":"King Arthur (2004)","status":"Completed","rating":6.0},{"id":"seed-0566","title":"Minsara Kanavu (1997)","status":"Completed","rating":5.0},{"id":"seed-0567","title":"Churuli (2021)","status":"Completed","rating":6.5},{"id":"seed-0568","title":"The Calender Killer (2024)","status":"Completed","rating":3.0},{"id":"seed-0569","title":"Idiocracy (2006)","status":"Completed","rating":""},{"id":"seed-0570","title":"me, myself and Irene","status":"Completed","rating":""},{"id":"seed-0571","title":"Half Girlfriend (2017)","status":"Completed","rating":6.0},{"id":"seed-0572","title":"Need for Speed (2014)","status":"Completed","rating":6.5},{"id":"seed-0573","title":"The Last American Virgin (1982)","status":"Completed","rating":6.0},{"id":"seed-0574","title":"Lemon Popsicle (1978)","status":"Completed","rating":""},{"id":"seed-0575","title":"Rekhachithram (2025)","status":"Completed","rating":""},{"id":"seed-0576","title":"Pulival Kalyanam","status":"Completed","rating":""},{"id":"seed-0577","title":"Kalki 2898 AD (2024)","status":"Completed","rating":""},{"id":"seed-0578","title":"Baghban (2003)","status":"Completed","rating":""},{"id":"seed-0579","title":"Taare Zameen Par (2007)","status":"Completed","rating":""},{"id":"seed-0580","title":"Lottery Ticket (2010)","status":"Completed","rating":""},{"id":"seed-0581","title":"Sudani from Nigeria","status":"Completed","rating":8.0},{"id":"seed-0582","title":"Animal (2023)","status":"Completed","rating":""},{"id":"seed-0583","title":"Chotta mumbai","status":"Completed","rating":""},{"id":"seed-0584","title":"All the money in the world (2017)","status":"Completed","rating":""},{"id":"seed-0585","title":"Meow (2021)","status":"Completed","rating":""},{"id":"seed-0586","title":"Crouching Tiger, Hidden Dragon (2000)","status":"Completed","rating":""},{"id":"seed-0587","title":"Stree 2 (2024)","status":"Completed","rating":""},{"id":"seed-0588","title":"Bahubali (2015)","status":"","rating":""},{"id":"seed-0589","title":"Bahubali 2 (2017)","status":"","rating":""},{"id":"seed-0590","title":"RRR","status":"","rating":""},{"id":"seed-0591","title":"Sanju (2018)","status":"Completed","rating":""},{"id":"seed-0592","title":"Padmaavat (2018)","status":"","rating":""},{"id":"seed-0593","title":"Ponniyin Selvan: I (2022)","status":"","rating":""},{"id":"seed-0594","title":"Dilwale (2015)","status":"","rating":""},{"id":"seed-0595","title":"Anniyan","status":"Completed","rating":""},{"id":"seed-0596","title":"A Gentleman (2017)","status":"Completed","rating":""},{"id":"seed-0597","title":"Mister Butler (2000)","status":"Completed","rating":""},{"id":"seed-0598","title":"Chocolate (2007)","status":"Completed","rating":""},{"id":"seed-0599","title":"Neelakasham Pachakadal Chuvanna Bhoomi (2013)","status":"Completed","rating":""},{"id":"seed-0600","title":"Friends malayalam ","status":"Completed","rating":""},{"id":"seed-0601","title":"Cocktail (2010)","status":"Completed","rating":""},{"id":"seed-0602","title":"Arabikkatha","status":"Completed","rating":""},{"id":"seed-0603","title":"Chanthupottu","status":"Completed","rating":""},{"id":"seed-0604","title":"Classmates (2006)","status":"","rating":""},{"id":"seed-0605","title":"Meesa Madhavan (2002)","status":"Completed","rating":""},{"id":"seed-0606","title":"Kilichundan Mampazham","status":"Completed","rating":""},{"id":"seed-0607","title":"Main Hoon Na (2004)","status":"Completed","rating":""},{"id":"seed-0608","title":"Chronic Bachelor","status":"Completed","rating":""},{"id":"seed-0609","title":"My Boss (2012)","status":"Completed","rating":""},{"id":"seed-0610","title":"Wedding Crashers","status":"Completed","rating":""},{"id":"seed-0611","title":"Rain Man (1988)","status":"Completed","rating":7.0},{"id":"seed-0612","title":"Clueless (1995)","status":"","rating":""},{"id":"seed-0613","title":"Anbe Sivam (2003)","status":"","rating":""},{"id":"seed-0614","title":"Njandukalude Nattil Oridavela","status":"","rating":""},{"id":"seed-0615","title":"Love action drama","status":"Completed","rating":6.5},{"id":"seed-0616","title":"12th fail ","status":"","rating":""},{"id":"seed-0617","title":"I am Kathalan","status":"Completed","rating":7.5},{"id":"seed-0618","title":"Roman Holiday","status":"","rating":""},{"id":"seed-0619","title":"Barefoot in the park","status":"","rating":""},{"id":"seed-0620","title":"Bachelor party","status":"Watching","rating":""},{"id":"seed-0621","title":"Sky high","status":"","rating":""},{"id":"seed-0622","title":"Vanilla Sky","status":"","rating":""},{"id":"seed-0623","title":"ayalum njanum thammil","status":"","rating":""},{"id":"seed-0624","title":"Guppy","status":"Completed","rating":""},{"id":"seed-0625","title":"Big World ","status":"","rating":""},{"id":"seed-0626","title":"The Big Lebowski","status":"","rating":""},{"id":"seed-0627","title":"Padayappa (1999)","status":"","rating":""},{"id":"seed-0628","title":"Diamond necklace","status":"Completed","rating":""},{"id":"seed-0629","title":"My name is khan","status":"","rating":""},{"id":"seed-0630","title":"Prince 2010","status":"Plan to watch","rating":""},{"id":"seed-0631","title":"Jaane Tu... Ya Jaane Na","status":"","rating":""},{"id":"seed-0632","title":"everything everywhere all at once","status":"","rating":""},{"id":"seed-0633","title":"Vaazha (2024)","status":"Completed","rating":7.0},{"id":"seed-0634","title":"Vaazha 2 (2026)","status":"Completed","rating":7.0},{"id":"seed-0635","title":"Anantaram (1987)","status":"Completed","rating":""},{"id":"seed-0636","title":"Just like heaven (2005)","status":"Completed","rating":7.0},{"id":"seed-0637","title":"The Lunchbox (2013)","status":"Completed","rating":7.5},{"id":"seed-0638","title":"Top Gun (1986)","status":"Completed","rating":""},{"id":"seed-0639","title":"Hum Dil De Chuke Sanam (1999)","status":"Plan to watch","rating":""},{"id":"seed-0640","title":"Kandukondain Kandukondain (2000)","status":"Plan to watch","rating":""},{"id":"seed-0641","title":"Rajamanikyam","status":"Completed","rating":""},{"id":"seed-0642","title":"Devdas (2002)","status":"Plan to watch","rating":""},{"id":"seed-0643","title":"The Namesake (2006)","status":"Plan to watch","rating":""},{"id":"seed-0644","title":"Steve Jobs (2015)","status":"Completed","rating":""}]</script>
+  <script>
+    (() => {
+      const STORAGE_KEY = 'reel-movie-tracker-v1';
+      const PAGE_SIZE = 12;
+      const validStatuses = ['Completed', 'Plan to watch', 'Watching', 'Dropped'];
+      const seedMovies = JSON.parse(document.getElementById('seedData').textContent);
+      let movies = readSavedMovies();
+      let activeFilter = 'all';
+      let currentPage = 1;
+      let editId = null;
+      let toastTimer;
+
+      const $ = (selector) => document.querySelector(selector);
+      const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+      const prettyStatus = (status) => status || 'Unsorted';
+      const statusFilter = (movie) => validStatuses.includes(movie.status) ? movie.status : 'Unsorted';
+      function readSavedMovies() {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (!saved) return seedMovies;
+          const value = JSON.parse(saved);
+          return Array.isArray(value) ? value : seedMovies;
+        } catch (_) { return seedMovies; }
+      }
+      function saveMovies() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(movies));
+          $('#savedState').innerHTML = '<svg viewBox="0 0 20 20" fill="none"><path d="m4.5 10.5 3.2 3.2 7.8-8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Saved on this device</span>';
+        } catch (_) {
+          $('#savedState').innerHTML = '<svg viewBox="0 0 20 20" fill="none"><path d="M10 5v5m0 3h.01M3.5 16.5 10 3l6.5 13.5h-13Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Could not save changes</span>';
+          showToast('This browser could not save your changes. Export a CSV to keep them.');
+        }
+      }
+      function countFor(filter) { return filter === 'all' ? movies.length : movies.filter((movie) => statusFilter(movie) === filter).length; }
+      function ratingNumber(movie) { const value = Number(movie.rating); return movie.rating !== '' && movie.rating !== null && movie.rating !== undefined && Number.isFinite(value) && value >= 0 && value <= 10 ? value : null; }
+      function yearFor(movie) { if (movie.year) return String(movie.year); const match = String(movie.title).match(/\((18|19|20)\d{2}\)\s*$/); return match ? match[0].slice(1, 5) : ''; }
+      function titleInitials(title) { const words = String(title).replace(/\([^)]*\)/g, '').trim().split(/\s+/).filter(Boolean); return (words.length > 1 ? words[0][0] + words[1][0] : (words[0] || 'F').slice(0, 2)).toUpperCase(); }
+      function colorFor(title) { let n = 0; for (const char of String(title)) n = (n * 31 + char.charCodeAt(0)) | 0; const palettes = [['#355c65','#92a7a2'],['#704c55','#c3987a'],['#334b4c','#a69a73'],['#514763','#b597a0'],['#30545c','#7ca49d'],['#6a4d37','#c79c64'],['#354450','#8a99a6'],['#654b45','#b58a73']]; return palettes[Math.abs(n) % palettes.length]; }
+      function showToast(message) { $('#toastMessage').textContent = message; $('#toast').classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => $('#toast').classList.remove('show'), 2600); }
+
+      function renderSummary() {
+        const total = movies.length;
+        const completed = countFor('Completed');
+        const planned = countFor('Plan to watch');
+        const watching = countFor('Watching');
+        const dropped = countFor('Dropped');
+        const unsorted = countFor('Unsorted');
+        const ratings = movies.map(ratingNumber).filter((value) => value !== null);
+        const average = ratings.length ? (ratings.reduce((sum, value) => sum + value, 0) / ratings.length).toFixed(1) : '—';
+        $('#metricTotal').textContent = total.toLocaleString();
+        $('#metricWatched').textContent = completed.toLocaleString();
+        $('#metricPlan').textContent = planned.toLocaleString();
+        $('#metricRating').innerHTML = `${average}<span class="metric-unit">/ 10</span>`;
+        $('#ratingFoot').textContent = `${ratings.length.toLocaleString()} ${ratings.length === 1 ? 'rating' : 'ratings'} added`;
+        $('#watchedFoot').textContent = `${total ? Math.round(completed / total * 100) : 0}% of your library`;
+        $('#watchedProgress').style.width = `${total ? Math.min(100, completed / total * 100) : 0}%`;
+        $('#completionPercent').textContent = `${total ? Math.round(completed / total * 100) : 0}%`;
+        $('#breakdownTotal').textContent = `${total.toLocaleString()} films`;
+        $('#nav-all').textContent = total.toLocaleString();
+        $('#nav-completed').textContent = completed.toLocaleString();
+        $('#nav-plan').textContent = planned.toLocaleString();
+        $('#nav-watching').textContent = watching.toLocaleString();
+        $('#nav-dropped').textContent = dropped.toLocaleString();
+        $('#nav-unsorted').textContent = unsorted.toLocaleString();
+        $('#tab-all').textContent = total.toLocaleString();
+        $('#tab-completed').textContent = completed.toLocaleString();
+        $('#tab-plan').textContent = planned.toLocaleString();
+        $('#tab-watching').textContent = watching.toLocaleString();
+        $('#tab-dropped').textContent = dropped.toLocaleString();
+        $('#tab-unsorted').textContent = unsorted.toLocaleString();
+        const rows = [
+          ['Watched', completed, ''],
+          ['Watchlist', planned, 'plan'],
+          ['Watching', watching, 'watch'],
+          ['Dropped', dropped, 'other'],
+          ['Unsorted', unsorted, 'other']
+        ];
+        $('#breakdownBars').innerHTML = rows.map(([label, count, kind]) => `<div class="bar-row"><span>${label}</span><div class="bar-track"><div class="bar-fill ${kind}" style="width:${total ? Math.max(count ? 1 : 0, count / total * 100) : 0}%"></div></div><span class="bar-count">${count}</span></div>`).join('');
+        $('#featureTitle').textContent = total ? 'A collection with a story.' : 'Your next favorite starts here.';
+        $('#featureSub').textContent = total ? `${unsorted ? `${unsorted} titles are waiting for a status.` : 'Pick up where you left off, or find something new to watch.'}` : 'Add the films you love, and the ones you can’t wait to see.';
+      }
+
+      function currentMovies() {
+        const query = $('#searchInput').value.trim().toLocaleLowerCase();
+        let result = movies.filter((movie) => (activeFilter === 'all' || statusFilter(movie) === activeFilter) && (!query || `${movie.title} ${prettyStatus(movie.status)}`.toLocaleLowerCase().includes(query)));
+        const sort = $('#sortSelect').value;
+        result.sort((a, b) => {
+          if (sort === 'title-desc') return String(b.title).localeCompare(String(a.title), undefined, { sensitivity: 'base' });
+          if (sort === 'rating-desc') return (ratingNumber(b) ?? -1) - (ratingNumber(a) ?? -1) || String(a.title).localeCompare(String(b.title), undefined, { sensitivity: 'base' });
+          if (sort === 'year-desc') return Number(yearFor(b) || 0) - Number(yearFor(a) || 0) || String(a.title).localeCompare(String(b.title), undefined, { sensitivity: 'base' });
+          if (sort === 'year-asc') return (Number(yearFor(a)) || 9999) - (Number(yearFor(b)) || 9999) || String(a.title).localeCompare(String(b.title), undefined, { sensitivity: 'base' });
+          return String(a.title).localeCompare(String(b.title), undefined, { sensitivity: 'base' });
+        });
+        return result;
+      }
+
+      function renderList() {
+        const result = currentMovies();
+        const pageCount = Math.max(1, Math.ceil(result.length / PAGE_SIZE));
+        currentPage = Math.min(currentPage, pageCount);
+        const start = (currentPage - 1) * PAGE_SIZE;
+        const visible = result.slice(start, start + PAGE_SIZE);
+        $('#libraryCount').textContent = `${result.length.toLocaleString()} ${result.length === 1 ? 'title' : 'titles'}`;
+        $('#movieRows').innerHTML = visible.map((movie) => {
+          const status = statusFilter(movie);
+          const year = yearFor(movie);
+          const rating = ratingNumber(movie);
+          const colors = colorFor(movie.title);
+          const className = status === 'Completed' ? 'completed' : status === 'Plan to watch' ? 'plan' : status === 'Watching' ? 'watching' : status === 'Dropped' ? 'dropped' : '';
+          return `<tr><td><div class="movie-cell"><span class="poster-tile" style="background:linear-gradient(145deg,${colors[0]},${colors[1]})">${escapeHtml(titleInitials(movie.title))}</span><div class="movie-info"><div class="movie-name" title="${escapeHtml(movie.title)}">${escapeHtml(movie.title)}</div><div class="movie-meta">${year ? `Film · ${escapeHtml(year)}` : 'Film'}</div></div></div></td><td><span class="status-pill ${className}">${escapeHtml(prettyStatus(movie.status))}</span></td><td>${rating === null ? '<span class="no-rating">—</span>' : `<span class="rating"><span class="rating-star">★</span>${rating.toFixed(1)}</span>`}</td><td style="text-align:right"><button class="edit-button" type="button" data-edit="${escapeHtml(movie.id)}" aria-label="Edit ${escapeHtml(movie.title)}">Edit</button></td></tr>`;
+        }).join('');
+        $('#emptyState').hidden = result.length !== 0;
+        $('#showingText').textContent = result.length ? `Showing ${start + 1}–${Math.min(start + PAGE_SIZE, result.length)} of ${result.length.toLocaleString()} titles` : 'Showing 0 titles';
+        $('#pageNumber').textContent = `${currentPage} / ${pageCount}`;
+        $('#prevPage').disabled = currentPage <= 1;
+        $('#nextPage').disabled = currentPage >= pageCount;
+      }
+
+      function updateViewLabels() {
+        const labelMap = { all: 'Overview', 'Completed': 'Watched', 'Plan to watch': 'Watchlist', 'Watching': 'Watching', 'Dropped': 'Dropped', 'Unsorted': 'Unsorted' };
+        const label = labelMap[activeFilter] || 'Overview';
+        $('#crumbLabel').textContent = label;
+        $('#libraryTitle').textContent = activeFilter === 'all' ? 'Your library' : label;
+        document.querySelectorAll('[data-filter]').forEach((button) => button.classList.toggle('active', button.dataset.filter === activeFilter));
+      }
+      function render() { renderSummary(); updateViewLabels(); renderList(); }
+      function setFilter(filter) { activeFilter = filter; currentPage = 1; render(); }
+
+      function openModal(movie = null) {
+        editId = movie ? movie.id : null;
+        $('#modalTitle').textContent = movie ? 'Edit movie' : 'Add a movie';
+        $('#modalDesc').textContent = movie ? 'Update the details in your library.' : 'Keep a note of what you want to watch next.';
+        $('#titleInput').value = movie ? movie.title : '';
+        $('#statusInput').value = movie ? (validStatuses.includes(movie.status) ? movie.status : '') : 'Plan to watch';
+        $('#ratingInput').value = movie && ratingNumber(movie) !== null ? movie.rating : '';
+        $('#deleteButton').hidden = !movie;
+        $('#modalBackdrop').classList.add('open');
+        setTimeout(() => $('#titleInput').focus(), 40);
+      }
+      function closeModal() { $('#modalBackdrop').classList.remove('open'); editId = null; }
+
+      function csvEscape(value) { return `"${String(value ?? '').replace(/"/g, '""')}"`; }
+      function exportCsv() {
+        const rows = [['Movie', 'Status', 'Rating'], ...movies.map((movie) => [movie.title, movie.status || '', ratingNumber(movie) === null ? '' : movie.rating])];
+        const csv = '\ufeff' + rows.map((row) => row.map(csvEscape).join(',')).join('\r\n');
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+        link.download = 'movies-list.csv';
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+        showToast('Your library CSV is ready.');
+      }
+      function parseCsv(text) {
+        const rows = []; let row = []; let field = ''; let quoted = false;
+        for (let i = 0; i < text.length; i++) {
+          const char = text[i];
+          if (quoted) {
+            if (char === '"' && text[i + 1] === '"') { field += '"'; i++; }
+            else if (char === '"') quoted = false;
+            else field += char;
+          } else if (char === '"') quoted = true;
+          else if (char === ',') { row.push(field); field = ''; }
+          else if (char === '\n') { row.push(field.replace(/\r$/, '')); rows.push(row); row = []; field = ''; }
+          else field += char;
+        }
+        if (field.length || row.length) { row.push(field.replace(/\r$/, '')); rows.push(row); }
+        return rows.filter((item) => item.some((value) => value.trim() !== ''));
+      }
+      function importCsv(file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const rows = parseCsv(String(reader.result || ''));
+            if (rows.length < 2) throw new Error('The CSV does not contain any movie rows.');
+            const headers = rows[0].map((name) => name.replace(/^\ufeff/, '').trim().toLocaleLowerCase());
+            const titleIndex = headers.findIndex((name) => ['movie', 'title', 'name'].includes(name));
+            const statusIndex = headers.findIndex((name) => name === 'status');
+            const ratingIndex = headers.findIndex((name) => name === 'rating');
+            if (titleIndex < 0) throw new Error('Add a “Movie” or “Title” column to the CSV.');
+            const imported = rows.slice(1).map((values, index) => {
+              const ratingText = ratingIndex >= 0 ? (values[ratingIndex] || '').trim() : '';
+              const numericRating = ratingText === '' ? '' : Number(ratingText);
+              return { id: `import-${Date.now()}-${index}`, title: (values[titleIndex] || '').trim(), status: statusIndex >= 0 ? (values[statusIndex] || '').trim() : '', rating: Number.isFinite(numericRating) && numericRating >= 0 && numericRating <= 10 ? numericRating : '' };
+            }).filter((movie) => movie.title);
+            if (!imported.length) throw new Error('No movie titles were found in that CSV.');
+            const replace = window.confirm(`Replace this browser’s library with ${imported.length.toLocaleString()} movies from “${file.name}”? Export a CSV first if you want to keep a copy of your current edits.`);
+            if (!replace) return;
+            movies = imported;
+            activeFilter = 'all'; currentPage = 1;
+            saveMovies(); render();
+            showToast(`Imported ${imported.length.toLocaleString()} movies.`);
+          } catch (error) { showToast(error.message || 'This CSV could not be imported.'); }
+        };
+        reader.onerror = () => showToast('This CSV could not be read.');
+        reader.readAsText(file);
+      }
+
+      document.querySelectorAll('[data-filter]').forEach((button) => button.addEventListener('click', () => setFilter(button.dataset.filter)));
+      $('#searchInput').addEventListener('input', () => { currentPage = 1; renderList(); });
+      $('#sortSelect').addEventListener('change', () => { currentPage = 1; renderList(); });
+      $('#prevPage').addEventListener('click', () => { currentPage--; renderList(); });
+      $('#nextPage').addEventListener('click', () => { currentPage++; renderList(); });
+      $('#movieRows').addEventListener('click', (event) => { const button = event.target.closest('[data-edit]'); if (!button) return; const movie = movies.find((item) => item.id === button.dataset.edit); if (movie) openModal(movie); });
+      $('#addButton').addEventListener('click', () => openModal());
+      $('#closeModal').addEventListener('click', closeModal);
+      $('#cancelModal').addEventListener('click', closeModal);
+      $('#modalBackdrop').addEventListener('click', (event) => { if (event.target === $('#modalBackdrop')) closeModal(); });
+      $('#movieForm').addEventListener('submit', (event) => {
+        event.preventDefault();
+        const title = $('#titleInput').value.trim();
+        if (!title) return;
+        const status = $('#statusInput').value;
+        const rawRating = $('#ratingInput').value.trim();
+        const rating = rawRating === '' ? '' : Number(rawRating);
+        if (rating !== '' && (!Number.isFinite(rating) || rating < 0 || rating > 10)) { $('#ratingInput').focus(); showToast('Choose a rating between 0 and 10.'); return; }
+        if (editId) {
+          const index = movies.findIndex((movie) => movie.id === editId);
+          if (index >= 0) movies[index] = { ...movies[index], title, status, rating };
+          showToast('Movie details updated.');
+        } else {
+          movies.unshift({ id: `movie-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, title, status, rating });
+          showToast('Movie added to your library.');
+        }
+        saveMovies(); closeModal(); currentPage = 1; render();
+      });
+      $('#deleteButton').addEventListener('click', () => {
+        const movie = movies.find((item) => item.id === editId);
+        if (!movie || !window.confirm(`Remove “${movie.title}” from your library?`)) return;
+        movies = movies.filter((item) => item.id !== editId);
+        saveMovies(); closeModal(); render(); showToast('Movie removed.');
+      });
+      $('#importButton').addEventListener('click', () => $('#importInput').click());
+      $('#exportButton').addEventListener('click', exportCsv);
+      $('#importInput').addEventListener('change', (event) => { const file = event.target.files[0]; if (file) importCsv(file); event.target.value = ''; });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closeModal();
+        if (event.key === '/' && !['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName)) { event.preventDefault(); $('#searchInput').focus(); }
+      });
+      render();
+    })();
+  </script>
+</body>
+</html>
+
