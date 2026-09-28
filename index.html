@@ -104,7 +104,7 @@
     .filter-button.active { border-color: #e8e2ff; background: var(--accent-soft); color: var(--accent-dark); font-weight: 620; }
     .filter-count { margin-left: 4px; color: #9b97a2; font-variant-numeric: tabular-nums; }
     .movie-list { border-top: 1px solid var(--line); }
-    .list-columns, .movie-row { display: grid; grid-template-columns: minmax(0, 1fr) 154px 92px 42px; align-items: center; gap: 13px; }
+    .list-columns, .movie-row { display: grid; grid-template-columns: minmax(0, 1fr) 72px 202px; align-items: center; gap: 13px; }
     .list-columns { min-height: 38px; padding: 0 20px; color: #a19da6; font-size: 10px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; }
     .movie-row { min-height: 63px; padding: 8px 20px; border-top: 1px solid #f1eff3; transition: background .12s; }
     .movie-row:first-child { border-top: 0; }
@@ -116,14 +116,14 @@
     .movie-note { display: flex; align-items: center; gap: 6px; margin-top: 2px; color: #a09ca5; font-size: 10px; }
     .soon-marker { display: inline-flex; align-items: center; gap: 4px; color: #6b58ba; }
     .soon-marker svg { width: 11px; height: 11px; }
-    .row-status { max-width: 154px; min-height: 28px; padding: 0 25px 0 9px; border: 0; border-radius: 7px; appearance: none; background-color: #f2f1f4; color: #66636d; font-size: 11px; font-weight: 560; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='m3 4.5 3 3 3-3' fill='none' stroke='%23827e89' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; }
+    .row-status { max-width: 116px; min-height: 28px; padding: 0 25px 0 9px; border: 0; border-radius: 7px; appearance: none; background-color: #f2f1f4; color: #66636d; font-size: 11px; font-weight: 560; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='m3 4.5 3 3 3-3' fill='none' stroke='%23827e89' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; }
     .row-status.status-completed { background-color: var(--green-soft); color: var(--green); }
     .row-status.status-plan { background-color: var(--purple-soft); color: var(--purple); }
     .row-status.status-watching { background-color: var(--blue-soft); color: var(--blue); }
     .row-status.status-dropped { background-color: var(--rose-soft); color: var(--rose); }
     .rating-cell { color: #68656f; font-size: 12px; font-variant-numeric: tabular-nums; }
     .rating-star { margin-right: 4px; color: #e0a324; }
-    .edit-button { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid transparent; border-radius: 9px; background: transparent; color: #88848f; cursor: pointer; }
+    .edit-button { width: 31px; height: 34px; display: grid; place-items: center; border: 1px solid transparent; border-radius: 9px; background: transparent; color: #88848f; cursor: pointer; }
     .edit-button:hover { border-color: #e9e5ef; background: white; color: var(--accent); }
     .edit-button svg { width: 16px; height: 16px; }
     .empty-state { padding: 52px 20px; text-align: center; }
@@ -171,8 +171,8 @@
       .app-shell { grid-template-columns: 210px minmax(0, 1fr); }
       .content { padding-right: 26px; padding-left: 26px; }
       .topbar { padding-right: 26px; }
-      .list-columns, .movie-row { grid-template-columns: minmax(0, 1fr) 140px 72px 38px; gap: 8px; }
-      .row-status { max-width: 140px; }
+      .list-columns, .movie-row { grid-template-columns: minmax(0, 1fr) 62px 194px; gap: 8px; }
+      .row-status { max-width: 108px; }
     }
     @media (max-width: 760px) {
       .app-shell { display: block; min-height: 100dvh; }
@@ -205,13 +205,25 @@
       .filter-count { display: none; }
       .list-columns { display: none; }
       .movie-list { border-top: 1px solid var(--line); }
-      .movie-row { grid-template-columns: minmax(0, 1fr) auto; gap: 9px; min-height: 66px; padding: 9px 11px 9px 13px; border-top-color: #f1eff3; }
+      .movie-row { grid-template-columns: minmax(0, 1fr) 158px; gap: 9px; min-height: 66px; padding: 9px 11px 9px 13px; border-top-color: #f1eff3; }
       .movie-title { font-size: 12px; }
       .movie-note { margin-top: 3px; font-size: 10px; }
-      .row-status { max-width: 119px; min-height: 29px; padding-left: 8px; font-size: 10px; }
+      .row-status { max-width: 86px; min-height: 29px; padding: 0 19px 0 7px; font-size: 10px; }
+      .row-tools { gap: 3px; }
+      .favorite-button, .edit-button { width: 30px; height: 34px; }
       .rating-cell { display: none; }
-      .edit-button { width: 34px; height: 34px; border-color: #eeecf1; background: white; color: #716d78; }
-      .mobile-nav { position: fixed; z-index: 8; right: 0; bottom: 0; left: 0; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; padding: 7px 15px calc(7px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: rgba(255, 255, 255, .94); backdrop-filter: blur(16px); }
+      .row-tools { display: flex; align-items: center; justify-content: flex-end; gap: 5px; }
+    .favorite-button { width: 34px; height: 34px; display: grid; flex: none; place-items: center; border: 1px solid transparent; border-radius: 9px; background: transparent; color: #aaa6b0; cursor: pointer; }
+    .favorite-button:hover { border-color: #f0e5bd; background: #fffdf6; color: #c28c13; }
+    .favorite-button.active { color: #d49b18; }
+    .favorite-button svg { width: 17px; height: 17px; }
+    .rank-badge { flex: none; color: var(--accent); font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .rank-controls { display: inline-flex; align-items: center; gap: 3px; margin-left: 3px; }
+    .rank-button { width: 22px; height: 21px; padding: 0; border: 1px solid var(--line); border-radius: 6px; background: #fff; color: #77727f; line-height: 1; cursor: pointer; }
+    .rank-button:hover:not(:disabled) { border-color: #d9d1f5; background: var(--accent-soft); color: var(--accent); }
+    .rank-button:disabled { opacity: .35; cursor: default; }
+    .edit-button { width: 34px; height: 34px; border-color: #eeecf1; background: white; color: #716d78; }
+      .mobile-nav { position: fixed; z-index: 8; right: 0; bottom: 0; left: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 7px 15px calc(7px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: rgba(255, 255, 255, .94); backdrop-filter: blur(16px); }
       .mobile-nav-button { min-height: 49px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border: 0; border-radius: 10px; background: transparent; color: #87838e; font-size: 9px; cursor: pointer; }
       .mobile-nav-button svg { width: 18px; height: 18px; }
       .mobile-nav-button.active { color: var(--accent); font-weight: 640; }
@@ -225,8 +237,10 @@
       .summary-label { font-size: 8px; }
       .summary-value { font-size: 17px; }
       .welcome h1 { font-size: 27px; }
-      .row-status { max-width: 108px; }
-      .movie-row { gap: 6px; padding-right: 8px; padding-left: 10px; }
+      .row-status { max-width: 80px; }
+      .row-tools { gap: 2px; }
+      .favorite-button, .edit-button { width: 28px; }
+      .movie-row { grid-template-columns: minmax(0, 1fr) 148px; gap: 6px; padding-right: 8px; padding-left: 10px; }
       .mobile-nav { padding-right: 10px; padding-left: 10px; }
     }
     @media (prefers-reduced-motion: reduce) {
@@ -248,7 +262,15 @@
           <svg viewBox="0 0 24 24" fill="none"><path d="M7 4.5h10a1.5 1.5 0 0 1 1.5 1.5v14L12 16.5 5.5 20V6A1.5 1.5 0 0 1 7 4.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 8h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
           <span>Next 3 months</span><b class="nav-count" id="navNextCount">—</b>
         </button>
-      </nav>
+              <button class="nav-button" type="button" data-view="favorites">
+          <svg viewBox="0 0 24 24" fill="none"><path d="m12 3.4 2.6 5.2 5.8.8-4.2 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.2-4.1 5.8-.8L12 3.4Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          <span>Top 10 favorites</span><b class="nav-count" id="navFavoritesCount">0</b>
+        </button>
+        <button class="nav-button" type="button" data-view="rated">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4.5 18.5h15M6 15l4-4 3 2 5-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.8 7H18v3.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Highest rated</span><b class="nav-count" id="navRatedCount">0</b>
+        </button>
+</nav>
       <div class="sidebar-spacer"></div>
       <button class="sync-button" type="button" id="cloudButton" aria-label="Cloud sync settings">
         <span class="sync-dot" id="syncDot"></span><span class="sync-label" id="syncLabel">Saved on this device</span>
@@ -313,7 +335,7 @@
               </select>
             </div>
           </div>
-          <div class="status-filters" role="tablist" aria-label="Filter by status">
+          <div class="status-filters" id="statusFilters" role="tablist" aria-label="Filter by status">
             <button class="filter-button active" type="button" data-status="all" role="tab" aria-selected="true">All <span class="filter-count" id="filterAllCount"></span></button>
             <button class="filter-button" type="button" data-status="Completed" role="tab" aria-selected="false">Watched <span class="filter-count" id="filterCompletedCount"></span></button>
             <button class="filter-button" type="button" data-status="Plan to watch" role="tab" aria-selected="false">Plan to watch <span class="filter-count" id="filterPlanCount"></span></button>
@@ -321,7 +343,7 @@
             <button class="filter-button" type="button" data-status="Dropped" role="tab" aria-selected="false">Dropped <span class="filter-count" id="filterDroppedCount"></span></button>
           </div>
           <div class="movie-list" id="movieList">
-            <div class="list-columns" aria-hidden="true"><span>Movie</span><span>Status</span><span>Rating</span><span></span></div>
+            <div class="list-columns" aria-hidden="true"><span>Movie</span><span>Rating</span><span>Status &amp; actions</span></div>
             <div id="movieRows"></div>
             <div class="empty-state" id="emptyState" hidden>
               <div class="empty-icon"><svg viewBox="0 0 20 20" fill="none"><circle cx="8.5" cy="8.5" r="5.8" stroke="currentColor" stroke-width="1.5"/><path d="m12.9 12.9 3.3 3.3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
@@ -345,9 +367,13 @@
       <svg viewBox="0 0 24 24" fill="none"><path d="M7 4.5h10a1.5 1.5 0 0 1 1.5 1.5v14L12 16.5 5.5 20V6A1.5 1.5 0 0 1 7 4.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 8h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
       <span>Next 3 months</span>
     </button>
-    <button class="mobile-nav-button add-mobile" type="button" id="mobileAddButton">
-      <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
-      <span>Add movie</span>
+    <button class="mobile-nav-button" type="button" data-view="favorites">
+      <svg viewBox="0 0 24 24" fill="none"><path d="m12 3.4 2.6 5.2 5.8.8-4.2 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.2-4.1 5.8-.8L12 3.4Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      <span>Top 10</span>
+    </button>
+    <button class="mobile-nav-button" type="button" data-view="rated">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M4.5 18.5h15M6 15l4-4 3 2 5-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.8 7H18v3.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Highest rated</span>
     </button>
   </nav>
 
@@ -465,11 +491,15 @@
       return items.map(function (movie, index) {
         var rating = movie.rating === '' || movie.rating == null ? null : Number(movie.rating);
         if (!Number.isFinite(rating) || rating < 0 || rating > 10) rating = null;
+        var rawFavoriteRank = movie.favoriteRank == null ? movie.favorite_rank : movie.favoriteRank;
+        var favoriteRank = rawFavoriteRank === '' || rawFavoriteRank == null ? null : Number(rawFavoriteRank);
+        if (!Number.isInteger(favoriteRank) || favoriteRank < 1 || favoriteRank > 10) favoriteRank = null;
         return {
           id: String(movie.id || ('legacy-' + index)),
           title: String(movie.title || '').trim(),
           status: statuses.indexOf(movie.status) >= 0 ? movie.status : 'Plan to watch',
           rating: rating,
+          favoriteRank: favoriteRank,
           nextThreeMonths: Boolean(movie.nextThreeMonths || movie.next_three_months),
           isDeleted: Boolean(movie.isDeleted || movie.is_deleted),
           createdAt: movie.createdAt || movie.created_at || null,
@@ -566,6 +596,8 @@
       $('#summaryAverage').textContent = average;
       $('#navAllCount').textContent = active.length.toLocaleString();
       $('#navNextCount').textContent = nextCount.toLocaleString();
+      $('#navFavoritesCount').textContent = active.filter(function (movie) { return movie.favoriteRank != null; }).length.toLocaleString();
+      $('#navRatedCount').textContent = ratings.length.toLocaleString();
       $('#filterAllCount').textContent = active.length.toLocaleString();
       $('#filterCompletedCount').textContent = countStatus('Completed').toLocaleString();
       $('#filterPlanCount').textContent = planned.toLocaleString();
@@ -576,9 +608,19 @@
       var query = $('#searchInput').value.trim().toLocaleLowerCase();
       var result = visibleMovies().filter(function (movie) {
         if (activeView === 'next3' && !movie.nextThreeMonths) return false;
-        if (activeView === 'all' && activeStatus !== 'all' && movie.status !== activeStatus) return false;
+        if (activeView === 'favorites' && movie.favoriteRank == null) return false;
+        if (activeView === 'rated' && ratingValue(movie) === null) return false;
+        if (activeStatus !== 'all' && movie.status !== activeStatus) return false;
         return !query || movie.title.toLocaleLowerCase().includes(query);
       });
+      if (activeView === 'favorites') {
+        result.sort(function (a, b) { return a.favoriteRank - b.favoriteRank; });
+        return result;
+      }
+      if (activeView === 'rated') {
+        result.sort(function (a, b) { return ratingValue(b) - ratingValue(a) || a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }); });
+        return result;
+      }
       var sort = $('#sortSelect').value;
       result.sort(function (a, b) {
         if (sort === 'recent') return String(b.createdAt || '').localeCompare(String(a.createdAt || '')) || b.title.localeCompare(a.title);
@@ -589,31 +631,46 @@
     }
     function renderList() {
       var list = currentList();
-      var shown = list.slice(0, currentPageSize);
-      $('#collectionTitle').textContent = activeView === 'next3' ? 'Next 3 months' : activeStatus === 'all' ? 'All movies' : activeStatus === 'Completed' ? 'Watched' : activeStatus;
+      var isLongRankedList = activeView === 'rated';
+      var shown = list.slice(0, isLongRankedList ? list.length : currentPageSize);
+      var favoriteTotal = visibleMovies().filter(function (movie) { return movie.favoriteRank != null; }).length;
+      var routeTitle = activeView === 'next3' ? 'Next 3 months' : activeView === 'favorites' ? 'Top 10 favorites' : activeView === 'rated' ? 'Highest rated' : activeStatus === 'all' ? 'All movies' : activeStatus === 'Completed' ? 'Watched' : activeStatus;
+      $('#collectionTitle').textContent = routeTitle;
       $('#movieCount').textContent = list.length.toLocaleString() + (list.length === 1 ? ' movie' : ' movies');
-      $('#movieRows').innerHTML = shown.map(function (movie) {
+      $('#sortSelect').hidden = activeView === 'favorites' || activeView === 'rated';
+      $('#movieRows').innerHTML = shown.map(function (movie, index) {
         var rating = ratingValue(movie);
         var year = yearFor(movie.title);
         var soon = movie.nextThreeMonths ? '<span class="soon-marker"><svg viewBox="0 0 16 16" fill="none"><path d="M5 2.7h6a1 1 0 0 1 1 1v9.2L8 10.2l-4 2.7V3.7a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>Next 3 months</span>' : '';
+        var ranked = activeView === 'rated' ? '<span class="rank-badge">#' + (index + 1) + '</span>' : activeView === 'favorites' ? '<span class="rank-badge">#' + movie.favoriteRank + '</span>' : '';
+        var moveControls = activeView === 'favorites' ? '<span class="rank-controls"><button class="rank-button" type="button" data-move="up" data-movie="' + escapeHtml(movie.id) + '" aria-label="Move ' + escapeHtml(movie.title) + ' up"' + (movie.favoriteRank <= 1 ? ' disabled' : '') + '>↑</button><button class="rank-button" type="button" data-move="down" data-movie="' + escapeHtml(movie.id) + '" aria-label="Move ' + escapeHtml(movie.title) + ' down"' + (movie.favoriteRank >= favoriteTotal ? ' disabled' : '') + '>↓</button></span>' : '';
         var options = statuses.map(function (status) { return '<option value="' + escapeHtml(status) + '"' + (status === movie.status ? ' selected' : '') + '>' + (status === 'Completed' ? 'Watched' : escapeHtml(status)) + '</option>'; }).join('');
-        return '<article class="movie-row" data-row="' + escapeHtml(movie.id) + '"><div class="movie-info"><div class="movie-title-line"><span class="movie-title">' + escapeHtml(movie.title) + '</span>' + (year ? '<span class="movie-year">' + escapeHtml(year) + '</span>' : '') + '</div><div class="movie-note">' + (soon || (year ? '' : '<span>' + escapeHtml(initialsFor(movie.title)) + ' in your library</span>')) + '</div></div><select class="row-status ' + statusClass(movie.status) + '" data-row-status="' + escapeHtml(movie.id) + '" aria-label="Status for ' + escapeHtml(movie.title) + '">' + options + '</select><span class="rating-cell">' + (rating === null ? '<span style="color:#b3afb8">—</span>' : '<span class="rating-star">★</span>' + rating.toFixed(rating % 1 ? 1 : 0)) + '</span><button class="edit-button" type="button" data-edit="' + escapeHtml(movie.id) + '" aria-label="Edit ' + escapeHtml(movie.title) + '"><svg viewBox="0 0 20 20" fill="none"><path d="m12.7 4.3 3 3M4 16l3.2-.6L15.4 7a1.6 1.6 0 0 0-2.3-2.3l-8.2 8.2L4 16Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></article>';
+        var favorite = movie.favoriteRank != null;
+        var favoritePath = favorite ? '<path d="m12 3.4 2.6 5.2 5.8.8-4.2 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.2-4.1 5.8-.8L12 3.4Z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>' : '<path d="m12 3.4 2.6 5.2 5.8.8-4.2 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.2-4.1 5.8-.8L12 3.4Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>';
+        var note = soon || (!year ? '<span>' + escapeHtml(initialsFor(movie.title)) + ' in your library</span>' : '');
+        return '<article class="movie-row" data-row="' + escapeHtml(movie.id) + '"><div class="movie-info"><div class="movie-title-line">' + ranked + '<span class="movie-title">' + escapeHtml(movie.title) + '</span>' + (year ? '<span class="movie-year">' + escapeHtml(year) + '</span>' : '') + '</div><div class="movie-note">' + note + moveControls + '</div></div><span class="rating-cell">' + (rating === null ? '<span style="color:#b3afb8">—</span>' : '<span class="rating-star">★</span>' + rating.toFixed(rating % 1 ? 1 : 0)) + '</span><div class="row-tools"><select class="row-status ' + statusClass(movie.status) + '" data-row-status="' + escapeHtml(movie.id) + '" aria-label="Status for ' + escapeHtml(movie.title) + '">' + options + '</select><button class="favorite-button' + (favorite ? ' active' : '') + '" type="button" data-favorite="' + escapeHtml(movie.id) + '" aria-label="' + (favorite ? 'Remove ' + escapeHtml(movie.title) + ' from Top 10 favorites' : 'Add ' + escapeHtml(movie.title) + ' to Top 10 favorites') + '" title="' + (favorite ? 'Remove from Top 10' : 'Add to Top 10') + '"><svg viewBox="0 0 24 24" fill="none">' + favoritePath + '</svg></button><button class="edit-button" type="button" data-edit="' + escapeHtml(movie.id) + '" aria-label="Edit ' + escapeHtml(movie.title) + '"><svg viewBox="0 0 20 20" fill="none"><path d="m12.7 4.3 3 3M4 16l3.2-.6L15.4 7a1.6 1.6 0 0 0-2.3-2.3l-8.2 8.2L4 16Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></article>';
       }).join('');
       var empty = list.length === 0;
       $('#emptyState').hidden = !empty;
       if (empty) {
         var hasSearch = $('#searchInput').value.trim() !== '';
-        $('#emptyTitle').textContent = activeView === 'next3' ? 'Your next three months are open' : hasSearch ? 'No matching movies' : 'No movies here yet';
-        $('#emptySubtitle').textContent = activeView === 'next3' ? 'Add a few titles you would like to get to soon.' : hasSearch ? 'Try a different title or clear your search.' : 'Add a movie to start your collection.';
+        $('#emptyTitle').textContent = activeView === 'favorites' ? 'Choose your first favorite' : activeView === 'rated' ? 'No rated movies yet' : activeView === 'next3' ? 'Your next three months are open' : hasSearch ? 'No matching movies' : 'No movies here yet';
+        $('#emptySubtitle').textContent = activeView === 'favorites' ? 'Tap the star beside a movie to add it to your Top 10.' : activeView === 'rated' ? 'Add a rating to any movie to place it in this list.' : activeView === 'next3' ? 'Add a few titles you would like to get to soon.' : hasSearch ? 'Try a different title or clear your search.' : 'Add a movie to start your collection.';
       }
-      $('#loadMoreButton').hidden = list.length <= currentPageSize;
+      $('#loadMoreButton').hidden = isLongRankedList || list.length <= currentPageSize;
       $('#loadMoreButton').textContent = 'Show ' + Math.min(PAGE_SIZE, list.length - currentPageSize).toLocaleString() + ' more';
     }
     function render() {
       updateSummary();
-      var heading = activeView === 'next3';
-      $('#headingTitle').textContent = heading ? 'Next 3 months' : activeStatus === 'all' ? 'All movies' : activeStatus === 'Completed' ? 'Watched' : activeStatus;
-      $('#headingSubtitle').textContent = heading ? 'A short list for the next few movie nights.' : activeStatus === 'all' ? "Everything you've watched, and everything still on your list." : 'Browse the movies in this part of your library.';
+      var routeTitles = { all: 'All movies', next3: 'Next 3 months', favorites: 'Top 10 favorites', rated: 'Highest rated' };
+      var routeSubtitles = {
+        all: activeStatus === 'all' ? "Everything you've watched, and everything still on your list." : 'Browse the movies in this part of your library.',
+        next3: 'A short list for the next few movie nights.',
+        favorites: 'Your hand-picked ten, in the order you rank them.',
+        rated: 'Every movie you have rated, from highest to lowest.'
+      };
+      $('#headingTitle').textContent = activeView === 'all' && activeStatus !== 'all' ? (activeStatus === 'Completed' ? 'Watched' : activeStatus) : routeTitles[activeView];
+      $('#headingSubtitle').textContent = routeSubtitles[activeView];
       document.querySelectorAll('[data-view]').forEach(function (button) {
         var active = button.dataset.view === activeView;
         button.classList.toggle('active', active);
@@ -621,7 +678,7 @@
         else button.removeAttribute('aria-current');
       });
       document.querySelectorAll('[data-status]').forEach(function (button) {
-        var active = activeView === 'all' && button.dataset.status === activeStatus;
+        var active = button.dataset.status === activeStatus;
         button.classList.toggle('active', active);
         button.setAttribute('aria-selected', active ? 'true' : 'false');
       });
@@ -650,11 +707,52 @@
       if (index >= 0) movies[index] = updated;
       else movies.unshift(updated);
     }
+    function compactFavoriteRanks() {
+      var favorites = visibleMovies().filter(function (movie) { return movie.favoriteRank != null; });
+      favorites.sort(function (a, b) { return a.favoriteRank - b.favoriteRank; });
+      favorites.forEach(function (movie, index) {
+        var rank = index < 10 ? index + 1 : null;
+        if (movie.favoriteRank !== rank) { movie.favoriteRank = rank; touchMovie(movie); }
+      });
+    }
+    function toggleFavorite(movieId) {
+      var movie = movies.find(function (item) { return item.id === movieId && !item.isDeleted; });
+      if (!movie) return;
+      if (movie.favoriteRank != null) {
+        movie.favoriteRank = null;
+        touchMovie(movie);
+        compactFavoriteRanks();
+        showToast('Removed from your Top 10.');
+      } else {
+        var favorites = visibleMovies().filter(function (item) { return item.favoriteRank != null; });
+        if (favorites.length >= 10) { showToast('Your Top 10 is full. Remove a favorite to make room.'); return; }
+        movie.favoriteRank = favorites.length + 1;
+        touchMovie(movie);
+        showToast('Added to your Top 10.');
+      }
+      saveLocal(true);
+      render();
+    }
+    function moveFavorite(movieId, direction) {
+      var favorites = visibleMovies().filter(function (movie) { return movie.favoriteRank != null; });
+      favorites.sort(function (a, b) { return a.favoriteRank - b.favoriteRank; });
+      var index = favorites.findIndex(function (movie) { return movie.id === movieId; });
+      var target = index + (direction === 'up' ? -1 : 1);
+      if (index < 0 || target < 0 || target >= favorites.length) return;
+      var rank = favorites[index].favoriteRank;
+      favorites[index].favoriteRank = favorites[target].favoriteRank;
+      favorites[target].favoriteRank = rank;
+      touchMovie(favorites[index]);
+      touchMovie(favorites[target]);
+      saveLocal(true);
+      render();
+    }
+
     function csvEscape(value) { return '"' + String(value == null ? '' : value).replace(/"/g, '""') + '"'; }
     function exportCsv() {
-      var rows = [['ID', 'Movie', 'Status', 'Rating', 'Next 3 months']];
+      var rows = [['ID', 'Movie', 'Status', 'Rating', 'Next 3 months', 'Favorite rank']];
       visibleMovies().forEach(function (movie) {
-        rows.push([movie.id, movie.title, movie.status, movie.rating == null ? '' : movie.rating, movie.nextThreeMonths ? 'TRUE' : 'FALSE']);
+        rows.push([movie.id, movie.title, movie.status, movie.rating == null ? '' : movie.rating, movie.nextThreeMonths ? 'TRUE' : 'FALSE', movie.favoriteRank == null ? '' : movie.favoriteRank]);
       });
       var csv = '\ufeff' + rows.map(function (row) { return row.map(csvEscape).join(','); }).join('\r\n');
       var link = document.createElement('a');
@@ -692,6 +790,7 @@
           var statusIndex = headers.indexOf('status');
           var ratingIndex = headers.indexOf('rating');
           var nextIndex = headers.indexOf('next 3 months');
+          var favoriteRankIndex = headers.indexOf('favorite rank');
           if (titleIndex < 0) throw new Error('Add a “Movie” or “Title” column to the CSV.');
           var imported = rows.slice(1).map(function (values, index) {
             var rawRating = ratingIndex >= 0 ? (values[ratingIndex] || '').trim() : '';
@@ -702,6 +801,7 @@
               title: (values[titleIndex] || '').trim(),
               status: statuses.indexOf(status) >= 0 ? status : 'Plan to watch',
               rating: Number.isFinite(rating) && rating >= 0 && rating <= 10 ? rating : null,
+              favoriteRank: favoriteRankIndex >= 0 ? Number((values[favoriteRankIndex] || '').trim()) || null : null,
               nextThreeMonths: nextIndex >= 0 && /^(true|yes|1)$/i.test((values[nextIndex] || '').trim()),
               isDeleted: false,
               createdAt: nowIso(),
@@ -718,6 +818,7 @@
             return copy;
           });
           movies = tombstones.concat(imported);
+          compactFavoriteRanks();
           localStorage.setItem(UPCOMING_MIGRATION_KEY, 'done');
           activeView = 'all'; activeStatus = 'all'; currentPageSize = PAGE_SIZE;
           saveLocal(true); render();
@@ -754,6 +855,7 @@
         status: statuses.indexOf(row.status) >= 0 ? row.status : 'Plan to watch',
         rating: row.rating == null ? null : Number(row.rating),
         nextThreeMonths: Boolean(row.next_three_months),
+        favoriteRank: row.favorite_rank == null ? null : Number(row.favorite_rank),
         isDeleted: Boolean(row.is_deleted),
         createdAt: row.created_at || null,
         updatedAt: row.updated_at || null
@@ -768,6 +870,7 @@
         status: movie.status,
         rating: movie.rating == null ? null : movie.rating,
         next_three_months: Boolean(movie.nextThreeMonths),
+        favorite_rank: movie.favoriteRank == null ? null : movie.favoriteRank,
         is_deleted: Boolean(movie.isDeleted),
         created_at: movie.createdAt || time,
         updated_at: movie.updatedAt || time
@@ -806,7 +909,7 @@
       try {
         do {
           syncAgain = false;
-          var response = await supabaseClient.from('movies').select('id,user_id,title,status,rating,next_three_months,is_deleted,created_at,updated_at').eq('user_id', activeUser.id);
+          var response = await supabaseClient.from('movies').select('id,user_id,title,status,rating,next_three_months,favorite_rank,is_deleted,created_at,updated_at').eq('user_id', activeUser.id);
           if (response.error) throw response.error;
           var remoteMovies = (response.data || []).map(fromRemote);
           var previousUser = localStorage.getItem(CLOUD_USER_KEY);
@@ -883,7 +986,6 @@
     });
     document.querySelectorAll('[data-status]').forEach(function (button) {
       button.addEventListener('click', function () {
-        activeView = 'all';
         activeStatus = button.dataset.status;
         currentPageSize = PAGE_SIZE;
         render();
@@ -893,9 +995,13 @@
     $('#sortSelect').addEventListener('change', function () { currentPageSize = PAGE_SIZE; renderList(); });
     $('#loadMoreButton').addEventListener('click', function () { currentPageSize += PAGE_SIZE; renderList(); });
     $('#movieList').addEventListener('click', function (event) {
-      var button = event.target.closest('[data-edit]');
-      if (!button) return;
-      var movie = movies.find(function (item) { return item.id === button.dataset.edit && !item.isDeleted; });
+      var favoriteButton = event.target.closest('[data-favorite]');
+      if (favoriteButton) { toggleFavorite(favoriteButton.dataset.favorite); return; }
+      var moveButton = event.target.closest('[data-move]');
+      if (moveButton) { moveFavorite(moveButton.dataset.movie, moveButton.dataset.move); return; }
+      var editButton = event.target.closest('[data-edit]');
+      if (!editButton) return;
+      var movie = movies.find(function (item) { return item.id === editButton.dataset.edit && !item.isDeleted; });
       if (movie) openMovieDialog(movie);
     });
     $('#movieList').addEventListener('change', function (event) {
@@ -909,7 +1015,6 @@
       showToast('Status updated.');
     });
     $('#addButton').addEventListener('click', function () { openMovieDialog(null); });
-    $('#mobileAddButton').addEventListener('click', function () { openMovieDialog(null); });
     $('#emptyAddButton').addEventListener('click', function () { openMovieDialog(null); });
     $('#movieForm').addEventListener('submit', function (event) {
       event.preventDefault();
@@ -942,6 +1047,8 @@
       var movie = movies.find(function (item) { return item.id === editingId; });
       if (!movie || !window.confirm('Remove “' + movie.title + '” from your library?')) return;
       movie.isDeleted = true;
+      movie.favoriteRank = null;
+      compactFavoriteRanks();
       touchMovie(movie);
       saveLocal(true); closeMovieDialog(); render();
       showToast('Movie removed.');

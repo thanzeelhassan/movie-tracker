@@ -1,6 +1,15 @@
 # Movie Tracker
 
-A minimal, responsive movie library that works as a static website. It keeps the current 644-item seed list, imports the screenshot watchlist, and saves edits in this browser. When Supabase is configured, email sign-in enables cloud storage across devices.
+A minimal, responsive movie library that works as a static website. It keeps the current 644-item seed list and the screenshot watchlist, saves edits in this browser, and can sync across devices through Supabase.
+
+## Sections
+
+- **All movies** — search, filter by status, change status inline, edit details, and rate titles.
+- **Next 3 months** — a curated list from the screenshots. Matching titles are not duplicated, and their current statuses are preserved.
+- **Top 10 favorites** — star titles from any list, up to ten at a time. Use the arrows beside a favorite to rank it.
+- **Highest rated** — every movie with a rating, sorted from highest to lowest. This view shows the full ranked list in one continuous scroll; it is not limited to ten.
+
+Blank or unknown old statuses migrate to **Plan to watch**, and newly added movies default to **Plan to watch**. There is no Unsorted category.
 
 ## Run the site
 
@@ -9,7 +18,7 @@ Open \`index.html\` or publish the folder with GitHub Pages. There is no build s
 ## Turn on cross-device sync
 
 1. Create a Supabase project.
-2. In that project's SQL Editor, run [supabase-schema.sql](./supabase-schema.sql).
+2. In that project's SQL Editor, run [supabase-schema.sql](./supabase-schema.sql). If you already ran the earlier schema, run the updated file again to add favorite ranking.
 3. In **Project Settings → API Keys**, copy the Project URL and **publishable** key. Put them in [supabase-config.js](./supabase-config.js):
    \`\`\`js
    window.MOVIE_TRACKER_CONFIG = {
@@ -24,9 +33,7 @@ The frontend key is public by design. Do not put a Supabase secret or service-ro
 
 ## Data behavior
 
-- Older blank or unknown statuses migrate to **Plan to watch**. New movies also default to **Plan to watch**.
-- The screenshot list adds 100 distinct titles to the **Next 3 months** collection. A title that already exists is not duplicated, and its current status is preserved; new entries are added as Plan to watch.
 - Updates are saved in browser storage immediately, then synced when signed in and online. Returning to the page or switching back to it refreshes cloud data. Conflicts use the most recent update time.
 - Removing a movie creates a hidden tombstone so another device does not restore it during sync.
-- Import and export use CSV. The export includes stable IDs and the Next 3 months flag for easier backup and restore.
+- CSV export includes stable IDs, the Next 3 months flag, and favorite rank for backup and restore.
 

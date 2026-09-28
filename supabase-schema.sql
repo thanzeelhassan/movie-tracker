@@ -1,5 +1,5 @@
--- Run this once in the Supabase SQL Editor.
--- RLS ensures a signed-in user can only read and change their own movie rows.
+-- Run this in the Supabase SQL Editor. It is safe to run again after adding favorite_rank.
+-- Row Level Security limits each signed-in user to their own movie rows.
 
 create table if not exists public.movies (
   user_id uuid not null references auth.users (id) on delete cascade,
@@ -7,12 +7,17 @@ create table if not exists public.movies (
   title text not null,
   status text not null check (status in ('Completed', 'Plan to watch', 'Watching', 'Dropped')),
   rating numeric(3,1) check (rating is null or (rating >= 0 and rating <= 10)),
+  favorite_rank smallint check (favorite_rank is null or favorite_rank between 1 and 10),
   next_three_months boolean not null default false,
   is_deleted boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   primary key (user_id, id)
 );
+
+alter table public.movies
+  add column if not exists favorite_rank smallint
+  check (favorite_rank is null or favorite_rank between 1 and 10);
 
 alter table public.movies enable row level security;
 
