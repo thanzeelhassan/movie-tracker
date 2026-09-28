@@ -230,12 +230,26 @@
       .library-tools { width: 100%; }
       .search-wrap { width: auto; flex: 1; }
       .sort-select { max-width: 126px; }
+      .heading-actions .button { min-width: 0; padding-inline: 8px; gap: 5px; font-size: 10px; }
       .filter-tabs { overflow-x: auto; padding-inline: 12px; }
       .filter-tab { flex: 0 0 auto; }
-      th { padding-inline: 11px; }
-      td { padding-inline: 11px; }
-      th:first-child, td:first-child { padding-left: 13px; }
-      th:last-child, td:last-child { padding-right: 13px; }
+      .table-wrap { overflow: visible; }
+      table { display: block; width: 100%; }
+      thead { display: none; }
+      tbody { display: block; width: 100%; }
+      tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; align-items: center; gap: 3px 10px; padding: 9px 13px; border-bottom: 1px solid #f0f2f3; }
+      tbody tr:last-child td { border-bottom: 0; }
+      tbody td { display: block; min-width: 0; height: auto; padding: 0; border: 0; white-space: normal; }
+      tbody td:first-child { grid-column: 1; grid-row: 1; padding-left: 0; }
+      tbody td:nth-child(2) { grid-column: 1; grid-row: 2; padding-left: 36px; }
+      tbody td:nth-child(3) { grid-column: 2; grid-row: 2; justify-self: end; text-align: right; }
+      tbody td:nth-child(4) { grid-column: 2; grid-row: 1; justify-self: end; align-self: center; text-align: right; padding-right: 0; }
+      .movie-cell { min-width: 0; gap: 9px; }
+      .movie-info { min-width: 0; flex: 1; }
+      .movie-name { max-width: none; white-space: nowrap; }
+      .poster-tile { width: 27px; height: 35px; }
+      .status-pill { padding: 3px 7px; }
+      .edit-button { min-width: 42px; padding: 6px 9px; border-color: #e5ecea; color: #387c72; background: #f4f9f8; }
       .table-footer { padding-inline: 13px; }
     }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }
