@@ -142,7 +142,7 @@
     .empty-icon svg { width: 19px; height: 19px; }
     .empty-state strong { display: block; font-size: 14px; font-weight: 640; }
     .empty-state p { margin: 5px 0 14px; color: var(--muted); font-size: 12px; }
-    .list-footer { display: flex; align-items: center; justify-content: center; min-height: 60px; padding: 10px 20px; border-top: 1px solid var(--line); }
+    .list-footer { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 60px; padding: 10px 20px; border-top: 1px solid var(--line); }
     .load-more { min-height: 34px; padding: 0 13px; border: 1px solid var(--line); border-radius: 9px; background: white; color: #615d67; font-size: 12px; font-weight: 560; cursor: pointer; }
     .load-more:hover { border-color: #d9d4e2; background: #fcfbff; }
     .load-more[hidden] { display: none; }
@@ -353,7 +353,7 @@
               <button class="button" type="button" id="emptyAddButton">Add a movie</button>
             </div>
           </div>
-          <div class="list-footer"><button class="load-more" id="loadMoreButton" type="button" hidden>Show more</button></div>
+          <div class="list-footer"><button class="load-more" id="loadMoreButton" type="button" hidden>Show more</button><button class="load-more" id="showAllButton" type="button" hidden>Show all</button></div>
         </section>
       </div>
     </main>
@@ -429,6 +429,7 @@
     var UPCOMING_MIGRATION_KEY = 'movie-tracker-next-three-months-v1';
     var CLOUD_USER_KEY = 'movie-tracker-cloud-user-v1';
     var PAGE_SIZE = 30;
+    var LOAD_MORE_SIZE = 100;
     var statuses = ['Completed', 'Plan to watch', 'Watching', 'Dropped'];
     var curatedTitles = [
       "miami vice (2006)", "Super Sharanya", "Vanilla Sky", "Charlie's Angels", "delhi 6",
@@ -663,8 +664,11 @@
         $('#emptyTitle').textContent = activeView === 'favorites' ? 'Choose your first favorite' : activeView === 'rated' ? 'No rated movies yet' : activeView === 'next3' ? 'Your next three months are open' : hasSearch ? 'No matching movies' : 'No movies here yet';
         $('#emptySubtitle').textContent = activeView === 'favorites' ? 'Tap the heart beside a movie to add it to your Top 10.' : activeView === 'rated' ? 'Add a rating to any movie to place it in this list.' : activeView === 'next3' ? 'Add a few titles you would like to get to soon.' : hasSearch ? 'Try a different title or clear your search.' : 'Add a movie to start your collection.';
       }
-      $('#loadMoreButton').hidden = isLongRankedList || list.length <= currentPageSize;
-      $('#loadMoreButton').textContent = 'Show ' + Math.min(PAGE_SIZE, list.length - currentPageSize).toLocaleString() + ' more';
+      var remaining = list.length - currentPageSize;
+      $('#loadMoreButton').hidden = isLongRankedList || remaining <= 0;
+      $('#loadMoreButton').textContent = 'Show ' + Math.min(LOAD_MORE_SIZE, remaining).toLocaleString() + ' more';
+      $('#showAllButton').hidden = isLongRankedList || remaining <= LOAD_MORE_SIZE;
+      $('#showAllButton').textContent = 'Show all ' + list.length.toLocaleString();
     }
     function render() {
       updateSummary();
@@ -1024,7 +1028,8 @@
     });
     $('#searchInput').addEventListener('input', function () { currentPageSize = PAGE_SIZE; renderList(); });
     $('#sortSelect').addEventListener('change', function () { currentPageSize = PAGE_SIZE; renderList(); });
-    $('#loadMoreButton').addEventListener('click', function () { currentPageSize += PAGE_SIZE; renderList(); });
+    $('#loadMoreButton').addEventListener('click', function () { currentPageSize += LOAD_MORE_SIZE; renderList(); });
+    $('#showAllButton').addEventListener('click', function () { currentPageSize = Infinity; renderList(); });
     $('#movieList').addEventListener('click', function (event) {
       var favoriteButton = event.target.closest('[data-favorite]');
       if (favoriteButton) { toggleFavorite(favoriteButton.dataset.favorite); return; }
