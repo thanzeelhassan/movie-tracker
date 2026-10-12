@@ -123,6 +123,17 @@
     .row-status.status-dropped { background-color: var(--rose-soft); color: var(--rose); }
     .rating-cell { color: #68656f; font-size: 12px; font-variant-numeric: tabular-nums; }
     .rating-star { margin-right: 4px; color: #e0a324; }
+    .row-tools { display: flex; align-items: center; justify-content: flex-end; gap: 5px; }
+    .favorite-button { width: 34px; height: 34px; display: grid; flex: none; place-items: center; padding: 0; border: 1px solid transparent; border-radius: 9px; background: transparent; color: #aaa6b0; cursor: pointer; transition: color .15s, background .15s, transform .15s; }
+    .favorite-button:hover { border-color: #f6d5da; background: #fff6f7; color: #e0445a; }
+    .favorite-button:active { transform: scale(.9); }
+    .favorite-button.active { color: #e0445a; }
+    .favorite-button svg { width: 18px; height: 18px; }
+    .rank-badge { flex: none; color: var(--accent); font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .rank-controls { display: inline-flex; align-items: center; gap: 3px; margin-left: 3px; }
+    .rank-button { width: 22px; height: 21px; padding: 0; border: 1px solid var(--line); border-radius: 6px; background: #fff; color: #77727f; line-height: 1; cursor: pointer; }
+    .rank-button:hover:not(:disabled) { border-color: #d9d1f5; background: var(--accent-soft); color: var(--accent); }
+    .rank-button:disabled { opacity: .35; cursor: default; }
     .edit-button { width: 31px; height: 34px; display: grid; place-items: center; border: 1px solid transparent; border-radius: 9px; background: transparent; color: #88848f; cursor: pointer; }
     .edit-button:hover { border-color: #e9e5ef; background: white; color: var(--accent); }
     .edit-button svg { width: 16px; height: 16px; }
@@ -212,16 +223,6 @@
       .row-tools { gap: 3px; }
       .favorite-button, .edit-button { width: 30px; height: 34px; }
       .rating-cell { display: none; }
-      .row-tools { display: flex; align-items: center; justify-content: flex-end; gap: 5px; }
-    .favorite-button { width: 34px; height: 34px; display: grid; flex: none; place-items: center; border: 1px solid transparent; border-radius: 9px; background: transparent; color: #aaa6b0; cursor: pointer; }
-    .favorite-button:hover { border-color: #f0e5bd; background: #fffdf6; color: #c28c13; }
-    .favorite-button.active { color: #d49b18; }
-    .favorite-button svg { width: 17px; height: 17px; }
-    .rank-badge { flex: none; color: var(--accent); font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; }
-    .rank-controls { display: inline-flex; align-items: center; gap: 3px; margin-left: 3px; }
-    .rank-button { width: 22px; height: 21px; padding: 0; border: 1px solid var(--line); border-radius: 6px; background: #fff; color: #77727f; line-height: 1; cursor: pointer; }
-    .rank-button:hover:not(:disabled) { border-color: #d9d1f5; background: var(--accent-soft); color: var(--accent); }
-    .rank-button:disabled { opacity: .35; cursor: default; }
     .edit-button { width: 34px; height: 34px; border-color: #eeecf1; background: white; color: #716d78; }
       .mobile-nav { position: fixed; z-index: 8; right: 0; bottom: 0; left: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 7px 15px calc(7px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: rgba(255, 255, 255, .94); backdrop-filter: blur(16px); }
       .mobile-nav-button { min-height: 49px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border: 0; border-radius: 10px; background: transparent; color: #87838e; font-size: 9px; cursor: pointer; }
@@ -651,7 +652,7 @@
         var moveControls = activeView === 'favorites' ? '<span class="rank-controls"><button class="rank-button" type="button" data-move="up" data-movie="' + escapeHtml(movie.id) + '" aria-label="Move ' + escapeHtml(movie.title) + ' up"' + (movie.favoriteRank <= 1 ? ' disabled' : '') + '>↑</button><button class="rank-button" type="button" data-move="down" data-movie="' + escapeHtml(movie.id) + '" aria-label="Move ' + escapeHtml(movie.title) + ' down"' + (movie.favoriteRank >= favoriteTotal ? ' disabled' : '') + '>↓</button></span>' : '';
         var options = statuses.map(function (status) { return '<option value="' + escapeHtml(status) + '"' + (status === movie.status ? ' selected' : '') + '>' + (status === 'Completed' ? 'Watched' : escapeHtml(status)) + '</option>'; }).join('');
         var favorite = movie.favoriteRank != null;
-        var favoritePath = favorite ? '<path d="m12 3.4 2.6 5.2 5.8.8-4.2 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.2-4.1 5.8-.8L12 3.4Z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>' : '<path d="m12 3.4 2.6 5.2 5.8.8-4.2 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.2-4.1 5.8-.8L12 3.4Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>';
+        var favoritePath = favorite ? '<path d="M12 20.2s-7.6-4.6-7.6-10.1A4.3 4.3 0 0 1 12 7.4a4.3 4.3 0 0 1 7.6 2.7c0 5.5-7.6 10.1-7.6 10.1Z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>' : '<path d="M12 20.2s-7.6-4.6-7.6-10.1A4.3 4.3 0 0 1 12 7.4a4.3 4.3 0 0 1 7.6 2.7c0 5.5-7.6 10.1-7.6 10.1Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>';
         var note = soon || (!year ? '<span>' + escapeHtml(initialsFor(movie.title)) + ' in your library</span>' : '');
         return '<article class="movie-row" data-row="' + escapeHtml(movie.id) + '"><div class="movie-info"><div class="movie-title-line">' + ranked + '<span class="movie-title">' + escapeHtml(movie.title) + '</span>' + (year ? '<span class="movie-year">' + escapeHtml(year) + '</span>' : '') + '</div><div class="movie-note">' + note + moveControls + '</div></div><span class="rating-cell">' + (rating === null ? '<span style="color:#b3afb8">—</span>' : '<span class="rating-star">★</span>' + rating.toFixed(rating % 1 ? 1 : 0)) + '</span><div class="row-tools"><select class="row-status ' + statusClass(movie.status) + '" data-row-status="' + escapeHtml(movie.id) + '" aria-label="Status for ' + escapeHtml(movie.title) + '">' + options + '</select><button class="favorite-button' + (favorite ? ' active' : '') + '" type="button" data-favorite="' + escapeHtml(movie.id) + '" aria-label="' + (favorite ? 'Remove ' + escapeHtml(movie.title) + ' from Top 10 favorites' : 'Add ' + escapeHtml(movie.title) + ' to Top 10 favorites') + '" title="' + (favorite ? 'Remove from Top 10' : 'Add to Top 10') + '"><svg viewBox="0 0 24 24" fill="none">' + favoritePath + '</svg></button><button class="edit-button" type="button" data-edit="' + escapeHtml(movie.id) + '" aria-label="Edit ' + escapeHtml(movie.title) + '"><svg viewBox="0 0 20 20" fill="none"><path d="m12.7 4.3 3 3M4 16l3.2-.6L15.4 7a1.6 1.6 0 0 0-2.3-2.3l-8.2 8.2L4 16Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></article>';
       }).join('');
@@ -660,7 +661,7 @@
       if (empty) {
         var hasSearch = $('#searchInput').value.trim() !== '';
         $('#emptyTitle').textContent = activeView === 'favorites' ? 'Choose your first favorite' : activeView === 'rated' ? 'No rated movies yet' : activeView === 'next3' ? 'Your next three months are open' : hasSearch ? 'No matching movies' : 'No movies here yet';
-        $('#emptySubtitle').textContent = activeView === 'favorites' ? 'Tap the star beside a movie to add it to your Top 10.' : activeView === 'rated' ? 'Add a rating to any movie to place it in this list.' : activeView === 'next3' ? 'Add a few titles you would like to get to soon.' : hasSearch ? 'Try a different title or clear your search.' : 'Add a movie to start your collection.';
+        $('#emptySubtitle').textContent = activeView === 'favorites' ? 'Tap the heart beside a movie to add it to your Top 10.' : activeView === 'rated' ? 'Add a rating to any movie to place it in this list.' : activeView === 'next3' ? 'Add a few titles you would like to get to soon.' : hasSearch ? 'Try a different title or clear your search.' : 'Add a movie to start your collection.';
       }
       $('#loadMoreButton').hidden = isLongRankedList || list.length <= currentPageSize;
       $('#loadMoreButton').textContent = 'Show ' + Math.min(PAGE_SIZE, list.length - currentPageSize).toLocaleString() + ' more';
