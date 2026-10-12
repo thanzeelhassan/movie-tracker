@@ -408,12 +408,13 @@
       Create a Supabase project, run <code>supabase-schema.sql</code> in its SQL Editor, then add your Project URL and publishable key to <code>supabase-config.js</code> and publish the site again. Use the publishable key only; never put a secret or service-role key in the site.
     </div>
     <form class="cloud-email-form" id="cloudEmailForm" hidden>
-      <p>Enter your email and we’ll send a sign-in link. Use this same address on each device.</p>
+      <p>Sign in with the same email and password on each device. Only you can sign in, so only you can change the list.</p>
       <div class="field"><label for="emailInput">Email address</label><input id="emailInput" name="email" type="email" required autocomplete="email" placeholder="you@example.com"></div>
-      <button class="button button-primary" id="sendLinkButton" type="submit">Send sign-in link</button>
+      <div class="field"><label for="passwordInput">Password</label><input id="passwordInput" name="password" type="password" required autocomplete="current-password"></div>
+      <button class="button button-primary" id="sendLinkButton" type="submit">Sign in</button>
     </form>
     <div class="signout-row" id="signoutRow" hidden><span class="signed-email" id="signedEmail"></span><button class="button" id="syncNowButton" type="button">Sync now</button><button class="button button-subtle" id="signOutButton" type="button">Sign out</button></div>
-    <div class="dialog-actions"><span class="field-hint">Your library stays saved in this browser while cloud sync is being set up.</span><span class="dialog-spacer"></span><button class="button" type="button" data-close-cloud>Done</button></div>
+    <div class="dialog-actions"><span class="field-hint">Until you sign in, changes are saved in this browser only.</span><span class="dialog-spacer"></span><button class="button" type="button" data-close-cloud>Done</button></div>
   </dialog>
 
   <input id="importInput" type="file" accept=".csv,text/csv" hidden>
@@ -459,6 +460,10 @@
     var editingId = null;
     var toastTimer = 0;
     var syncTimer = 0;
+    var refreshTimer = 0;
+    var REFRESH_MS = 60000;
+    var PAGE_ROWS = 1000;
+    var UPLOAD_CHUNK = 500;
     var supabaseClient = null;
     var activeUser = null;
     var cloudReady = false;
@@ -560,7 +565,7 @@
       if (shouldSync !== false) scheduleCloudSync();
     }
     function scheduleCloudSync() {
-      if (!supabaseClient || !activeUser || !cloudReady) return;
+      if (!supabaseClient || !activeUser) return;
       clearTimeout(syncTimer);
       setSyncState('Saving to cloud…', 'busy');
       syncTimer = setTimeout(function () { syncCloud(false); }, 400);
@@ -829,6 +834,10 @@
       reader.readAsText(file);
     }
 
+    function projectUrl() {
+      var config = window.MOVIE_TRACKER_CONFIG || {};
+      return String(config.supabaseUrl || '').trim().replace(/\/(rest|auth)\/v1\/?$/, '').replace(/\/+$/, '');
+    }
     function configReady() {
       var config = window.MOVIE_TRACKER_CONFIG || {};
       return Boolean(config.supabaseUrl && config.publishableKey && config.supabaseUrl.indexOf('YOUR_PROJECT') < 0 && config.publishableKey.indexOf('YOUR_PUBLISHABLE') < 0);
@@ -876,30 +885,51 @@
         updated_at: movie.updatedAt || time
       };
     }
+    // Returns the merged list plus only the rows the cloud is missing or has an older copy of.
     function mergeMovies(localMovies, remoteMovies, switchedUser) {
       if (switchedUser) {
-        if (remoteMovies.length) return remoteMovies;
-        return normalizeMovies(seedMovies);
+        if (remoteMovies.length) return { movies: remoteMovies, upload: [] };
+        var fresh = normalizeMovies(seedMovies);
+        return { movies: fresh, upload: fresh };
       }
       var remoteById = {};
       remoteMovies.forEach(function (movie) { remoteById[movie.id] = movie; });
       var merged = [];
+      var upload = [];
       var seen = {};
       localMovies.forEach(function (local) {
+        if (seen[local.id]) return;
+        seen[local.id] = true;
         var remote = remoteById[local.id];
         if (!remote) {
           if (!local.updatedAt) local.updatedAt = nowIso();
           if (!local.createdAt) local.createdAt = local.updatedAt;
           merged.push(local);
-        } else {
-          var localTime = local.updatedAt ? Date.parse(local.updatedAt) : 0;
-          var remoteTime = remote.updatedAt ? Date.parse(remote.updatedAt) : 0;
-          merged.push(localTime > remoteTime ? local : remote);
+          upload.push(local);
+          return;
         }
-        seen[local.id] = true;
+        var localTime = local.updatedAt ? Date.parse(local.updatedAt) : 0;
+        var remoteTime = remote.updatedAt ? Date.parse(remote.updatedAt) : 0;
+        if (localTime > remoteTime) { merged.push(local); upload.push(local); }
+        else merged.push(remote);
       });
       remoteMovies.forEach(function (remote) { if (!seen[remote.id]) merged.push(remote); });
-      return merged;
+      return { movies: merged, upload: upload };
+    }
+    // Supabase returns at most 1000 rows per request, so read the table in pages.
+    async function fetchRemoteMovies(userId) {
+      var rows = [];
+      for (var from = 0; ; from += PAGE_ROWS) {
+        var response = await supabaseClient.from('movies')
+          .select('id,user_id,title,status,rating,next_three_months,favorite_rank,is_deleted,created_at,updated_at')
+          .eq('user_id', userId)
+          .order('id', { ascending: true })
+          .range(from, from + PAGE_ROWS - 1);
+        if (response.error) throw response.error;
+        var page = response.data || [];
+        rows = rows.concat(page);
+        if (page.length < PAGE_ROWS) return rows;
+      }
     }
     async function syncCloud(initialLoad) {
       if (!supabaseClient || !activeUser) return;
@@ -909,17 +939,16 @@
       try {
         do {
           syncAgain = false;
-          var response = await supabaseClient.from('movies').select('id,user_id,title,status,rating,next_three_months,favorite_rank,is_deleted,created_at,updated_at').eq('user_id', activeUser.id);
-          if (response.error) throw response.error;
-          var remoteMovies = (response.data || []).map(fromRemote);
+          var remoteMovies = (await fetchRemoteMovies(activeUser.id)).map(fromRemote);
           var previousUser = localStorage.getItem(CLOUD_USER_KEY);
           var switchedUser = Boolean(previousUser && previousUser !== activeUser.id);
-          movies = mergeMovies(movies, remoteMovies, switchedUser);
+          var result = mergeMovies(movies, remoteMovies, switchedUser);
+          movies = result.movies;
           saveLocal(false);
           render();
-          var records = movies.map(function (movie) { return toRemote(movie, activeUser.id); });
-          if (records.length) {
-            var upload = await supabaseClient.from('movies').upsert(records, { onConflict: 'user_id,id' });
+          var records = result.upload.map(function (movie) { return toRemote(movie, activeUser.id); });
+          for (var start = 0; start < records.length; start += UPLOAD_CHUNK) {
+            var upload = await supabaseClient.from('movies').upsert(records.slice(start, start + UPLOAD_CHUNK), { onConflict: 'user_id,id' });
             if (upload.error) throw upload.error;
           }
           localStorage.setItem(CLOUD_USER_KEY, activeUser.id);
@@ -931,7 +960,7 @@
         cloudReady = false;
         setSyncState('Sync paused', '');
         console.error('Movie Tracker cloud sync failed:', error);
-        showToast('Cloud sync paused. Your changes are still saved on this device.');
+        showToast('Cloud sync failed: ' + (error && error.message ? error.message : 'unknown error') + '. Your changes are still saved on this device.');
       } finally {
         syncRunning = false;
         if (syncAgain && activeUser) syncCloud(false);
@@ -941,7 +970,7 @@
       return new Promise(function (resolve, reject) {
         if (window.supabase && window.supabase.createClient) { resolve(window.supabase); return; }
         var script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+        script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js';
         script.onload = function () { if (window.supabase && window.supabase.createClient) resolve(window.supabase); else reject(new Error('Supabase client did not load.')); };
         script.onerror = function () { reject(new Error('Could not load the Supabase client.')); };
         document.head.appendChild(script);
@@ -952,7 +981,7 @@
       try {
         var config = window.MOVIE_TRACKER_CONFIG;
         var library = await loadSupabaseSdk();
-        supabaseClient = library.createClient(config.supabaseUrl, config.publishableKey);
+        supabaseClient = library.createClient(projectUrl(), config.publishableKey);
         supabaseClient.auth.onAuthStateChange(function (event, session) {
           if (session && session.user) {
             activeUser = session.user;
@@ -964,11 +993,12 @@
           } else if (event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
             activeUser = null;
             cloudReady = false;
-            if (event === 'SIGNED_OUT') setSyncState('Signed out', '');
+            syncedUsers = {};
+            setSyncState(event === 'SIGNED_OUT' ? 'Signed out' : 'Not signed in: saved on this device only', '');
             updateCloudDialog();
           }
         });
-        setSyncState('Sign in to sync', '');
+        if (!activeUser) setSyncState('Not signed in: saved on this device only', '');
       } catch (error) {
         setSyncState('Cloud unavailable', '');
         console.error('Movie Tracker could not load the Supabase client:', error);
@@ -1073,18 +1103,19 @@
       if (!supabaseClient) { showToast('Finish the Supabase setup before signing in.'); return; }
       var button = $('#sendLinkButton');
       button.disabled = true;
-      button.textContent = 'Sending link…';
+      button.textContent = 'Signing in…';
       try {
-        var result = await supabaseClient.auth.signInWithOtp({
+        var result = await supabaseClient.auth.signInWithPassword({
           email: $('#emailInput').value.trim(),
-          options: { emailRedirectTo: window.location.href.split('#')[0] }
+          password: $('#passwordInput').value
         });
         if (result.error) throw result.error;
-        showToast('Sign-in link sent. Check your email on this device.');
-        button.textContent = 'Link sent';
+        $('#passwordInput').value = '';
+        showToast('Signed in. Syncing your library…');
       } catch (error) {
-        showToast(error.message || 'Could not send the sign-in link.');
-        button.textContent = 'Send sign-in link';
+        showToast(error.message || 'Could not sign in.');
+      } finally {
+        button.textContent = 'Sign in';
         button.disabled = false;
       }
     });
@@ -1093,14 +1124,17 @@
       if (!supabaseClient) return;
       var result = await supabaseClient.auth.signOut();
       if (result.error) showToast(result.error.message || 'Could not sign out.');
-      else { activeUser = null; cloudReady = false; setSyncState('Signed out', ''); updateCloudDialog(); showToast('Signed out. Your device copy is still here.'); }
+      else { activeUser = null; cloudReady = false; syncedUsers = {}; setSyncState('Signed out', ''); updateCloudDialog(); showToast('Signed out. Your device copy is still here.'); }
     });
     document.addEventListener('keydown', function (event) {
       if (event.key === 'Escape') { if ($('#movieDialog').open) closeMovieDialog(); if ($('#cloudDialog').open) $('#cloudDialog').close(); }
       if (event.key === '/' && !['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) { event.preventDefault(); $('#searchInput').focus(); }
     });
-    document.addEventListener('visibilitychange', function () { if (!document.hidden && cloudReady) syncCloud(false); });
-    window.addEventListener('online', function () { if (cloudReady) syncCloud(false); });
+    document.addEventListener('visibilitychange', function () { if (!document.hidden && activeUser) syncCloud(false); });
+    window.addEventListener('online', function () { if (activeUser) syncCloud(false); });
+    window.addEventListener('focus', function () { if (activeUser) syncCloud(false); });
+    // Pick up changes made on another device while this page stays open.
+    refreshTimer = setInterval(function () { if (activeUser && !document.hidden) syncCloud(false); }, REFRESH_MS);
 
     applyUpcomingSeed();
     saveLocal(false);
