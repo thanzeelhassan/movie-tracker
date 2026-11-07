@@ -42,6 +42,7 @@
     .brand { display: flex; align-items: center; gap: 11px; padding: 0 9px; margin: 0 0 46px; color: var(--ink); text-decoration: none; font-size: 16px; font-weight: 680; letter-spacing: -.035em; }
     .brand-mark { width: 31px; height: 31px; display: grid; place-items: center; border-radius: 10px; background: var(--accent); color: white; font-size: 13px; font-weight: 750; letter-spacing: -.04em; }
     .nav-label { padding: 0 11px; margin: 0 0 10px; color: var(--soft); font-size: 10px; font-weight: 700; letter-spacing: .12em; }
+    .nav-label-section { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
     .nav-list { display: grid; gap: 5px; }
     .nav-button { width: 100%; display: flex; align-items: center; gap: 12px; min-height: 43px; padding: 0 11px; text-align: left; border: 0; border-radius: 10px; background: transparent; color: #5f5c65; cursor: pointer; transition: color .15s, background .15s; }
     .nav-button:hover { color: var(--ink); background: #f7f6fa; }
@@ -230,6 +231,8 @@
       .mobile-nav-button { min-height: 49px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border: 0; border-radius: 10px; background: transparent; color: #87838e; font-size: 9px; cursor: pointer; }
       .mobile-nav-button svg { width: 18px; height: 18px; }
       .mobile-nav-button.active { color: var(--accent); font-weight: 640; }
+      .mobile-nav-section { position: relative; }
+      .mobile-nav-section::before { content: ""; position: absolute; top: 9px; bottom: 9px; left: -3px; width: 1px; background: var(--line); }
       .mobile-nav-button.add-mobile { color: var(--accent); }
       .list-footer { min-height: 54px; }
       .toast { right: 12px; bottom: calc(82px + env(safe-area-inset-bottom)); left: 12px; max-width: none; text-align: center; }
@@ -255,21 +258,17 @@
   <div class="app-shell">
     <aside class="sidebar" aria-label="Main navigation">
       <a class="brand" href="#" aria-label="Movie Tracker home"><span class="brand-mark">mt</span><span>Movie Tracker</span></a>
-      <p class="nav-label">YOUR LIBRARY</p>
-      <nav class="nav-list">
+      <p class="nav-label">MOVIES</p>
+      <nav class="nav-list" aria-label="Movies">
         <button class="nav-button active" type="button" data-view="all" aria-current="page">
           <svg viewBox="0 0 24 24" fill="none"><path d="M4.5 6.5h15v13h-15zM8 6.5V4m8 2.5V4M4.5 10h15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <span>All movies</span><b class="nav-count" id="navAllCount">—</b>
-        </button>
-        <button class="nav-button" type="button" data-view="shows">
-          <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="6.5" width="17" height="11.5" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="m9 3.5 3 3 3-3M8 21h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <span>TV shows</span><b class="nav-count" id="navShowsCount">—</b>
         </button>
         <button class="nav-button" type="button" data-view="next3">
           <svg viewBox="0 0 24 24" fill="none"><path d="M7 4.5h10a1.5 1.5 0 0 1 1.5 1.5v14L12 16.5 5.5 20V6A1.5 1.5 0 0 1 7 4.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 8h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
           <span>Next 3 months</span><b class="nav-count" id="navNextCount">—</b>
         </button>
-              <button class="nav-button" type="button" data-view="favorites">
+        <button class="nav-button" type="button" data-view="favorites">
           <svg viewBox="0 0 24 24" fill="none"><path d="m12 3.4 2.6 5.2 5.8.8-4.2 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.2-4.1 5.8-.8L12 3.4Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
           <span>Top 10 favorites</span><b class="nav-count" id="navFavoritesCount">0</b>
         </button>
@@ -277,7 +276,14 @@
           <svg viewBox="0 0 24 24" fill="none"><path d="M4.5 18.5h15M6 15l4-4 3 2 5-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.8 7H18v3.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <span>Highest rated</span><b class="nav-count" id="navRatedCount">0</b>
         </button>
-</nav>
+      </nav>
+      <p class="nav-label nav-label-section">TV SHOWS</p>
+      <nav class="nav-list" aria-label="TV shows">
+        <button class="nav-button" type="button" data-view="shows">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="6.5" width="17" height="11.5" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="m9 3.5 3 3 3-3M8 21h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>All TV shows</span><b class="nav-count" id="navShowsCount">—</b>
+        </button>
+      </nav>
       <div class="sidebar-spacer"></div>
       <button class="sync-button" type="button" id="cloudButton" aria-label="Cloud sync settings">
         <span class="sync-dot" id="syncDot"></span><span class="sync-label" id="syncLabel">Saved on this device</span>
@@ -370,10 +376,6 @@
       <svg viewBox="0 0 24 24" fill="none"><path d="M4.5 6.5h15v13h-15zM8 6.5V4m8 2.5V4M4.5 10h15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span>Movies</span>
     </button>
-    <button class="mobile-nav-button" type="button" data-view="shows">
-      <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="6.5" width="17" height="11.5" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="m9 3.5 3 3 3-3M8 21h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span>TV shows</span>
-    </button>
     <button class="mobile-nav-button" type="button" data-view="next3">
       <svg viewBox="0 0 24 24" fill="none"><path d="M7 4.5h10a1.5 1.5 0 0 1 1.5 1.5v14L12 16.5 5.5 20V6A1.5 1.5 0 0 1 7 4.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 8h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
       <span>Next 3 months</span>
@@ -385,6 +387,10 @@
     <button class="mobile-nav-button" type="button" data-view="rated">
       <svg viewBox="0 0 24 24" fill="none"><path d="M4.5 18.5h15M6 15l4-4 3 2 5-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M14.8 7H18v3.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span>Highest rated</span>
+    </button>
+    <button class="mobile-nav-button mobile-nav-section" type="button" data-view="shows">
+      <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="6.5" width="17" height="11.5" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="m9 3.5 3 3 3-3M8 21h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>TV shows</span>
     </button>
   </nav>
 
