@@ -1,4 +1,4 @@
--- Run this in the Supabase SQL Editor. It is safe to run again after adding favorite_rank.
+-- Run this in the Supabase SQL Editor. It is safe to run again; it creates the movies and tv_shows tables if they are missing.
 -- Row Level Security limits each signed-in user to their own movie rows.
 
 create table if not exists public.movies (
@@ -46,5 +46,48 @@ create policy "Users can update their own movies"
 drop policy if exists "Users can remove their own movies" on public.movies;
 create policy "Users can remove their own movies"
   on public.movies for delete
+  to authenticated
+  using ((select auth.uid()) = user_id);
+
+-- TV shows live in their own table, with the same statuses as movies.
+create table if not exists public.tv_shows (
+  user_id uuid not null references auth.users (id) on delete cascade,
+  id text not null,
+  title text not null,
+  status text not null check (status in ('Completed', 'Plan to watch', 'Watching', 'Dropped')),
+  rating numeric(3,1) check (rating is null or (rating >= 0 and rating <= 10)),
+  is_deleted boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  primary key (user_id, id)
+);
+
+alter table public.tv_shows enable row level security;
+
+revoke all on table public.tv_shows from anon, public;
+grant select, insert, update, delete on table public.tv_shows to authenticated;
+
+drop policy if exists "Users can read their own TV shows" on public.tv_shows;
+create policy "Users can read their own TV shows"
+  on public.tv_shows for select
+  to authenticated
+  using ((select auth.uid()) = user_id);
+
+drop policy if exists "Users can add their own TV shows" on public.tv_shows;
+create policy "Users can add their own TV shows"
+  on public.tv_shows for insert
+  to authenticated
+  with check ((select auth.uid()) = user_id);
+
+drop policy if exists "Users can update their own TV shows" on public.tv_shows;
+create policy "Users can update their own TV shows"
+  on public.tv_shows for update
+  to authenticated
+  using ((select auth.uid()) = user_id)
+  with check ((select auth.uid()) = user_id);
+
+drop policy if exists "Users can remove their own TV shows" on public.tv_shows;
+create policy "Users can remove their own TV shows"
+  on public.tv_shows for delete
   to authenticated
   using ((select auth.uid()) = user_id);
