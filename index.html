@@ -162,6 +162,7 @@
     .field input, .field select { width: 100%; height: 41px; padding: 0 11px; border: 1px solid #e6e3ea; border-radius: 9px; background: white; color: #2c2931; font-size: 13px; }
     .field input::placeholder { color: #aaa7ae; }
     .field-hint { color: #94909a; font-size: 10px; }
+    .check-line[hidden] { display: none; }
     .check-line { display: flex; align-items: center; gap: 9px; padding: 3px 0; color: #56535d; font-size: 12px; cursor: pointer; }
     .check-line input { width: 16px; height: 16px; accent-color: var(--accent); }
     .check-line:has(input:disabled) { opacity: .5; cursor: not-allowed; }
@@ -225,7 +226,7 @@
       .favorite-button, .edit-button { width: 30px; height: 34px; }
       .rating-cell { display: none; }
     .edit-button { width: 34px; height: 34px; border-color: #eeecf1; background: white; color: #716d78; }
-      .mobile-nav { position: fixed; z-index: 8; right: 0; bottom: 0; left: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 7px 15px calc(7px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: rgba(255, 255, 255, .94); backdrop-filter: blur(16px); }
+      .mobile-nav { position: fixed; z-index: 8; right: 0; bottom: 0; left: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; padding: 7px 15px calc(7px + env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: rgba(255, 255, 255, .94); backdrop-filter: blur(16px); }
       .mobile-nav-button { min-height: 49px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border: 0; border-radius: 10px; background: transparent; color: #87838e; font-size: 9px; cursor: pointer; }
       .mobile-nav-button svg { width: 18px; height: 18px; }
       .mobile-nav-button.active { color: var(--accent); font-weight: 640; }
@@ -260,6 +261,10 @@
           <svg viewBox="0 0 24 24" fill="none"><path d="M4.5 6.5h15v13h-15zM8 6.5V4m8 2.5V4M4.5 10h15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <span>All movies</span><b class="nav-count" id="navAllCount">—</b>
         </button>
+        <button class="nav-button" type="button" data-view="shows">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="6.5" width="17" height="11.5" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="m9 3.5 3 3 3-3M8 21h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>TV shows</span><b class="nav-count" id="navShowsCount">—</b>
+        </button>
         <button class="nav-button" type="button" data-view="next3">
           <svg viewBox="0 0 24 24" fill="none"><path d="M7 4.5h10a1.5 1.5 0 0 1 1.5 1.5v14L12 16.5 5.5 20V6A1.5 1.5 0 0 1 7 4.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 8h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
           <span>Next 3 months</span><b class="nav-count" id="navNextCount">—</b>
@@ -292,7 +297,7 @@
         <button class="button button-subtle topbar-sync" id="topSyncButton" type="button">Sync settings</button>
         <button class="button button-primary" id="addButton" type="button">
           <svg viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
-          Add a movie
+          <span id="addButtonLabel">Add a movie</span>
         </button>
       </header>
 
@@ -326,7 +331,7 @@
           <div class="collection-heading">
             <div class="collection-title-group"><h2 id="collectionTitle">All movies</h2><span class="movie-count" id="movieCount">—</span></div>
             <div class="list-actions">
-              <label class="search-wrap" aria-label="Search movies">
+              <label class="search-wrap" id="searchLabel" aria-label="Search movies">
                 <svg viewBox="0 0 20 20" fill="none"><circle cx="8.8" cy="8.8" r="5.8" stroke="currentColor" stroke-width="1.5"/><path d="m13.2 13.2 3.3 3.3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                 <input class="search-input" id="searchInput" type="search" placeholder="Search your movies" autocomplete="off">
               </label>
@@ -345,7 +350,7 @@
             <button class="filter-button" type="button" data-status="Dropped" role="tab" aria-selected="false">Dropped <span class="filter-count" id="filterDroppedCount"></span></button>
           </div>
           <div class="movie-list" id="movieList">
-            <div class="list-columns" aria-hidden="true"><span>Movie</span><span>Rating</span><span>Status &amp; actions</span></div>
+            <div class="list-columns" aria-hidden="true"><span id="columnTitle">Movie</span><span>Rating</span><span>Status &amp; actions</span></div>
             <div id="movieRows"></div>
             <div class="empty-state" id="emptyState" hidden>
               <div class="empty-icon"><svg viewBox="0 0 20 20" fill="none"><circle cx="8.5" cy="8.5" r="5.8" stroke="currentColor" stroke-width="1.5"/><path d="m12.9 12.9 3.3 3.3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
@@ -363,7 +368,11 @@
   <nav class="mobile-nav" aria-label="Main navigation">
     <button class="mobile-nav-button active" type="button" data-view="all">
       <svg viewBox="0 0 24 24" fill="none"><path d="M4.5 6.5h15v13h-15zM8 6.5V4m8 2.5V4M4.5 10h15" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span>All movies</span>
+      <span>Movies</span>
+    </button>
+    <button class="mobile-nav-button" type="button" data-view="shows">
+      <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="6.5" width="17" height="11.5" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="m9 3.5 3 3 3-3M8 21h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>TV shows</span>
     </button>
     <button class="mobile-nav-button" type="button" data-view="next3">
       <svg viewBox="0 0 24 24" fill="none"><path d="M7 4.5h10a1.5 1.5 0 0 1 1.5 1.5v14L12 16.5 5.5 20V6A1.5 1.5 0 0 1 7 4.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 8h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
@@ -386,10 +395,10 @@
     </div>
     <form id="movieForm">
       <div class="dialog-body">
-        <div class="field"><label for="titleInput">Movie title</label><input id="titleInput" name="title" required maxlength="180" placeholder="e.g. In the Mood for Love" autocomplete="off"></div>
+        <div class="field"><label for="titleInput" id="titleInputLabel">Movie title</label><input id="titleInput" name="title" required maxlength="180" placeholder="e.g. In the Mood for Love" autocomplete="off"></div>
         <div class="field"><label for="statusInput">Status</label><select id="statusInput" name="status"><option value="Plan to watch">Plan to watch</option><option value="Completed">Watched</option><option value="Watching">Watching</option><option value="Dropped">Dropped</option></select></div>
         <div class="field"><label for="ratingInput">Your rating <span class="field-hint">(optional, out of 10)</span></label><input id="ratingInput" name="rating" type="number" min="0" max="10" step="0.5" placeholder="Leave blank for now"><span class="field-hint">Half points are welcome. A rating of 0 is valid.</span></div>
-        <label class="check-line"><input id="nextThreeInput" name="nextThreeMonths" type="checkbox"><span>Plan to watch in the next 3 months</span></label>
+        <label class="check-line" id="nextThreeLine"><input id="nextThreeInput" name="nextThreeMonths" type="checkbox"><span>Plan to watch in the next 3 months</span></label>
       </div>
       <div class="dialog-actions">
         <button class="button button-danger" id="deleteButton" type="button" hidden>Remove movie</button>
@@ -454,6 +463,21 @@
       "Popstar", "Jacobinter Swargarajyam", "cowboy bebop", "hajime no ippo", "Oshi no ko",
       "cocktail movie", "Bleach manga", "Fairy tail manga", "Skip to loafer", "Demon Slayer"
     ];
+    var TV_SHOWS_MIGRATION_KEY = 'movie-tracker-tv-shows-v1';
+    // TV shows live in the same table as movies. An id that starts with "show-" marks a show,
+    // so cloud sync keeps working without a new database column.
+    var SHOW_ID_PREFIX = 'show-';
+    var seedShows = [
+      "3 Body Problem (2024)", "100 Days My Prince (2018)", "Alice in Borderland (2020)", "Black Mirror (2011)",
+      "Boys Over Flowers (2009)", "Breaking Bad (2008)", "Crash Landing on You (2019)", "Friends (1994)",
+      "Game of Thrones (2011)", "Goblin (2016)", "House of the Dragon (2022)", "Invincible (2021)",
+      "Love, Death & Robots (2019)", "Mad Men (2007)", "Modern Family (2009)", "Narcos (2015)",
+      "Narcos: Mexico (2018)", "Queen of Tears (2024)", "Reply 1988 (2015)", "Reply 1994 (2013)",
+      "Reply 1997 (2012)", "Sex Education (2019)", "Sherlock (2010)", "Shogun (2024)",
+      "SKY Castle (2018)", "Squid Game (2021)", "Succession (2018)", "That '70s Show (1998)",
+      "The Last Dance (2020)", "The Sopranos (1999)", "The Umbrella Academy (2019)", "The Wire (2002)",
+      "The World of the Married (2020)"
+    ];
     var seedMovies = JSON.parse(document.getElementById('seedData').textContent);
     var localStoredMovies = readLocalMovies();
     var movies = normalizeMovies(localStoredMovies);
@@ -485,7 +509,13 @@
     var statusClass = function (status) {
       return status === 'Completed' ? 'status-completed' : status === 'Plan to watch' ? 'status-plan' : status === 'Watching' ? 'status-watching' : 'status-dropped';
     };
-    var visibleMovies = function () { return movies.filter(function (movie) { return !movie.isDeleted; }); };
+    var isShow = function (item) { return String(item.id).indexOf(SHOW_ID_PREFIX) === 0; };
+    var visibleItems = function () { return movies.filter(function (movie) { return !movie.isDeleted; }); };
+    // Movies only: every movie view, Top 10, and Highest rated stay about films.
+    var visibleMovies = function () { return visibleItems().filter(function (movie) { return !isShow(movie); }); };
+    var visibleShows = function () { return visibleItems().filter(isShow); };
+    var inShows = function () { return activeView === 'shows'; };
+    var libraryItems = function () { return inShows() ? visibleShows() : visibleMovies(); };
 
     function readLocalMovies() {
       try {
@@ -551,6 +581,18 @@
       localStorage.setItem(UPCOMING_MIGRATION_KEY, 'done');
       saveLocal(false);
     }
+    // Adds the starting TV show list once. Fixed ids mean a second device merges instead of duplicating.
+    function applyShowSeed() {
+      if (localStorage.getItem(TV_SHOWS_MIGRATION_KEY) === 'done') return;
+      seedShows.forEach(function (title, index) {
+        var id = SHOW_ID_PREFIX + 'seed-' + String(index + 1).padStart(3, '0');
+        var exists = movies.some(function (item) { return item.id === id || (isShow(item) && !item.isDeleted && movieTitleMatches(item.title, title)); });
+        if (exists) return;
+        movies.push({ id: id, title: title, status: 'Completed', rating: null, favoriteRank: null, nextThreeMonths: false, isDeleted: false, createdAt: null, updatedAt: null });
+      });
+      localStorage.setItem(TV_SHOWS_MIGRATION_KEY, 'done');
+      saveLocal(false);
+    }
 
     function setSyncState(label, tone) {
       $('#syncLabel').textContent = label;
@@ -574,8 +616,8 @@
       syncTimer = setTimeout(function () { syncCloud(false); }, 400);
     }
     // Only movies still marked Plan to watch belong in Next 3 months, even if an older save left the flag on.
-    function isPlannedSoon(movie) { return movie.nextThreeMonths && movie.status === 'Plan to watch'; }
-    function countStatus(status) { return visibleMovies().filter(function (movie) { return movie.status === status; }).length; }
+    function isPlannedSoon(movie) { return movie.nextThreeMonths && movie.status === 'Plan to watch' && !isShow(movie); }
+    function countStatus(status) { return libraryItems().filter(function (movie) { return movie.status === status; }).length; }
     function ratingValue(movie) {
       return Number.isFinite(Number(movie.rating)) && movie.rating !== null && movie.rating !== '' ? Number(movie.rating) : null;
     }
@@ -594,20 +636,23 @@
       toastTimer = setTimeout(function () { $('#toast').classList.remove('show'); }, 2800);
     }
     function updateSummary() {
-      var active = visibleMovies();
+      var active = libraryItems();
+      var movieList = visibleMovies();
       var watched = countStatus('Completed');
       var planned = countStatus('Plan to watch');
       var ratings = active.map(ratingValue).filter(function (rating) { return rating !== null; });
+      var movieRatings = movieList.map(ratingValue).filter(function (rating) { return rating !== null; });
       var average = ratings.length ? (ratings.reduce(function (sum, rating) { return sum + rating; }, 0) / ratings.length).toFixed(1) : '—';
-      var nextCount = active.filter(isPlannedSoon).length;
+      var nextCount = movieList.filter(isPlannedSoon).length;
       $('#summaryTotal').textContent = active.length.toLocaleString();
       $('#summaryWatched').textContent = watched.toLocaleString();
       $('#summaryPlanned').textContent = planned.toLocaleString();
       $('#summaryAverage').textContent = average;
-      $('#navAllCount').textContent = active.length.toLocaleString();
+      $('#navAllCount').textContent = movieList.length.toLocaleString();
+      $('#navShowsCount').textContent = visibleShows().length.toLocaleString();
       $('#navNextCount').textContent = nextCount.toLocaleString();
-      $('#navFavoritesCount').textContent = active.filter(function (movie) { return movie.favoriteRank != null; }).length.toLocaleString();
-      $('#navRatedCount').textContent = ratings.length.toLocaleString();
+      $('#navFavoritesCount').textContent = movieList.filter(function (movie) { return movie.favoriteRank != null; }).length.toLocaleString();
+      $('#navRatedCount').textContent = movieRatings.length.toLocaleString();
       $('#filterAllCount').textContent = active.length.toLocaleString();
       $('#filterCompletedCount').textContent = countStatus('Completed').toLocaleString();
       $('#filterPlanCount').textContent = planned.toLocaleString();
@@ -616,7 +661,7 @@
     }
     function currentList() {
       var query = $('#searchInput').value.trim().toLocaleLowerCase();
-      var result = visibleMovies().filter(function (movie) {
+      var result = libraryItems().filter(function (movie) {
         if (activeView === 'next3' && !isPlannedSoon(movie)) return false;
         if (activeView === 'favorites' && movie.favoriteRank == null) return false;
         if (activeView === 'rated' && ratingValue(movie) === null) return false;
@@ -644,9 +689,16 @@
       var isLongRankedList = activeView === 'rated';
       var shown = list.slice(0, isLongRankedList ? list.length : currentPageSize);
       var favoriteTotal = visibleMovies().filter(function (movie) { return movie.favoriteRank != null; }).length;
-      var routeTitle = activeView === 'next3' ? 'Next 3 months' : activeView === 'favorites' ? 'Top 10 favorites' : activeView === 'rated' ? 'Highest rated' : activeStatus === 'all' ? 'All movies' : activeStatus === 'Completed' ? 'Watched' : activeStatus;
+      var showsView = inShows();
+      var noun = showsView ? 'show' : 'movie';
+      var routeTitle = showsView ? (activeStatus === 'all' ? 'TV shows' : activeStatus === 'Completed' ? 'Watched shows' : activeStatus) : activeView === 'next3' ? 'Next 3 months' : activeView === 'favorites' ? 'Top 10 favorites' : activeView === 'rated' ? 'Highest rated' : activeStatus === 'all' ? 'All movies' : activeStatus === 'Completed' ? 'Watched' : activeStatus;
       $('#collectionTitle').textContent = routeTitle;
-      $('#movieCount').textContent = list.length.toLocaleString() + (list.length === 1 ? ' movie' : ' movies');
+      $('#movieCount').textContent = list.length.toLocaleString() + ' ' + noun + (list.length === 1 ? '' : 's');
+      $('#columnTitle').textContent = showsView ? 'Show' : 'Movie';
+      $('#searchInput').placeholder = showsView ? 'Search your TV shows' : 'Search your movies';
+      $('#searchLabel').setAttribute('aria-label', showsView ? 'Search TV shows' : 'Search movies');
+      $('#addButtonLabel').textContent = showsView ? 'Add a show' : 'Add a movie';
+      $('#emptyAddButton').textContent = showsView ? 'Add a TV show' : 'Add a movie';
       $('#sortSelect').hidden = activeView === 'favorites' || activeView === 'rated';
       $('#movieRows').innerHTML = shown.map(function (movie, index) {
         var rating = ratingValue(movie);
@@ -657,15 +709,16 @@
         var options = statuses.map(function (status) { return '<option value="' + escapeHtml(status) + '"' + (status === movie.status ? ' selected' : '') + '>' + (status === 'Completed' ? 'Watched' : escapeHtml(status)) + '</option>'; }).join('');
         var favorite = movie.favoriteRank != null;
         var favoritePath = favorite ? '<path d="M12 20.2s-7.6-4.6-7.6-10.1A4.3 4.3 0 0 1 12 7.4a4.3 4.3 0 0 1 7.6 2.7c0 5.5-7.6 10.1-7.6 10.1Z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>' : '<path d="M12 20.2s-7.6-4.6-7.6-10.1A4.3 4.3 0 0 1 12 7.4a4.3 4.3 0 0 1 7.6 2.7c0 5.5-7.6 10.1-7.6 10.1Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>';
+        var favoriteButton = showsView ? '' : '<button class="favorite-button' + (favorite ? ' active' : '') + '" type="button" data-favorite="' + escapeHtml(movie.id) + '" aria-label="' + (favorite ? 'Remove ' + escapeHtml(movie.title) + ' from Top 10 favorites' : 'Add ' + escapeHtml(movie.title) + ' to Top 10 favorites') + '" title="' + (favorite ? 'Remove from Top 10' : 'Add to Top 10') + '"><svg viewBox="0 0 24 24" fill="none">' + favoritePath + '</svg></button>';
         var note = soon || (!year ? '<span>' + escapeHtml(initialsFor(movie.title)) + ' in your library</span>' : '');
-        return '<article class="movie-row" data-row="' + escapeHtml(movie.id) + '"><div class="movie-info"><div class="movie-title-line">' + ranked + '<span class="movie-title">' + escapeHtml(movie.title) + '</span>' + (year ? '<span class="movie-year">' + escapeHtml(year) + '</span>' : '') + '</div><div class="movie-note">' + note + moveControls + '</div></div><span class="rating-cell">' + (rating === null ? '<span style="color:#b3afb8">—</span>' : '<span class="rating-star">★</span>' + rating.toFixed(rating % 1 ? 1 : 0)) + '</span><div class="row-tools"><select class="row-status ' + statusClass(movie.status) + '" data-row-status="' + escapeHtml(movie.id) + '" aria-label="Status for ' + escapeHtml(movie.title) + '">' + options + '</select><button class="favorite-button' + (favorite ? ' active' : '') + '" type="button" data-favorite="' + escapeHtml(movie.id) + '" aria-label="' + (favorite ? 'Remove ' + escapeHtml(movie.title) + ' from Top 10 favorites' : 'Add ' + escapeHtml(movie.title) + ' to Top 10 favorites') + '" title="' + (favorite ? 'Remove from Top 10' : 'Add to Top 10') + '"><svg viewBox="0 0 24 24" fill="none">' + favoritePath + '</svg></button><button class="edit-button" type="button" data-edit="' + escapeHtml(movie.id) + '" aria-label="Edit ' + escapeHtml(movie.title) + '"><svg viewBox="0 0 20 20" fill="none"><path d="m12.7 4.3 3 3M4 16l3.2-.6L15.4 7a1.6 1.6 0 0 0-2.3-2.3l-8.2 8.2L4 16Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></article>';
+        return '<article class="movie-row" data-row="' + escapeHtml(movie.id) + '"><div class="movie-info"><div class="movie-title-line">' + ranked + '<span class="movie-title">' + escapeHtml(movie.title) + '</span>' + (year ? '<span class="movie-year">' + escapeHtml(year) + '</span>' : '') + '</div><div class="movie-note">' + note + moveControls + '</div></div><span class="rating-cell">' + (rating === null ? '<span style="color:#b3afb8">—</span>' : '<span class="rating-star">★</span>' + rating.toFixed(rating % 1 ? 1 : 0)) + '</span><div class="row-tools"><select class="row-status ' + statusClass(movie.status) + '" data-row-status="' + escapeHtml(movie.id) + '" aria-label="Status for ' + escapeHtml(movie.title) + '">' + options + '</select>' + favoriteButton + '<button class="edit-button" type="button" data-edit="' + escapeHtml(movie.id) + '" aria-label="Edit ' + escapeHtml(movie.title) + '"><svg viewBox="0 0 20 20" fill="none"><path d="m12.7 4.3 3 3M4 16l3.2-.6L15.4 7a1.6 1.6 0 0 0-2.3-2.3l-8.2 8.2L4 16Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></article>';
       }).join('');
       var empty = list.length === 0;
       $('#emptyState').hidden = !empty;
       if (empty) {
         var hasSearch = $('#searchInput').value.trim() !== '';
-        $('#emptyTitle').textContent = activeView === 'favorites' ? 'Choose your first favorite' : activeView === 'rated' ? 'No rated movies yet' : activeView === 'next3' ? 'Your next three months are open' : hasSearch ? 'No matching movies' : 'No movies here yet';
-        $('#emptySubtitle').textContent = activeView === 'favorites' ? 'Tap the heart beside a movie to add it to your Top 10.' : activeView === 'rated' ? 'Add a rating to any movie to place it in this list.' : activeView === 'next3' ? 'Add a few titles you would like to get to soon.' : hasSearch ? 'Try a different title or clear your search.' : 'Add a movie to start your collection.';
+        $('#emptyTitle').textContent = showsView ? (hasSearch ? 'No matching shows' : 'No TV shows here yet') : activeView === 'favorites' ? 'Choose your first favorite' : activeView === 'rated' ? 'No rated movies yet' : activeView === 'next3' ? 'Your next three months are open' : hasSearch ? 'No matching movies' : 'No movies here yet';
+        $('#emptySubtitle').textContent = showsView ? (hasSearch ? 'Try a different title or clear your search.' : 'Add a TV show to start this list.') : activeView === 'favorites' ? 'Tap the heart beside a movie to add it to your Top 10.' : activeView === 'rated' ? 'Add a rating to any movie to place it in this list.' : activeView === 'next3' ? 'Add a few titles you would like to get to soon.' : hasSearch ? 'Try a different title or clear your search.' : 'Add a movie to start your collection.';
       }
       var remaining = list.length - currentPageSize;
       $('#loadMoreButton').hidden = isLongRankedList || remaining <= 0;
@@ -675,14 +728,15 @@
     }
     function render() {
       updateSummary();
-      var routeTitles = { all: 'All movies', next3: 'Next 3 months', favorites: 'Top 10 favorites', rated: 'Highest rated' };
+      var routeTitles = { shows: 'TV shows', all: 'All movies', next3: 'Next 3 months', favorites: 'Top 10 favorites', rated: 'Highest rated' };
       var routeSubtitles = {
         all: activeStatus === 'all' ? "Everything you've watched, and everything still on your list." : 'Browse the movies in this part of your library.',
+        shows: activeStatus === 'all' ? "Every series you've finished, and the ones still in your queue." : 'Browse the TV shows in this part of your library.',
         next3: 'A short list for the next few movie nights.',
         favorites: 'Your hand-picked ten, in the order you rank them.',
         rated: 'Every movie you have rated, from highest to lowest.'
       };
-      $('#headingTitle').textContent = activeView === 'all' && activeStatus !== 'all' ? (activeStatus === 'Completed' ? 'Watched' : activeStatus) : routeTitles[activeView];
+      $('#headingTitle').textContent = (activeView === 'all' || activeView === 'shows') && activeStatus !== 'all' ? (activeStatus === 'Completed' ? (inShows() ? 'Watched shows' : 'Watched') : activeStatus) : routeTitles[activeView];
       $('#headingSubtitle').textContent = routeSubtitles[activeView];
       document.querySelectorAll('[data-view]').forEach(function (button) {
         var active = button.dataset.view === activeView;
@@ -698,14 +752,22 @@
       renderList();
     }
 
+    var editingShow = false;
     function openMovieDialog(movie) {
       editingId = movie ? movie.id : null;
-      $('#movieDialogTitle').textContent = movie ? 'Edit movie' : 'Add a movie';
-      $('#movieDialogSubtitle').textContent = movie ? 'Update the details in your library.' : 'Save a title for another movie night.';
+      editingShow = movie ? isShow(movie) : inShows();
+      var noun = editingShow ? 'TV show' : 'movie';
+      $('#movieDialogTitle').textContent = movie ? 'Edit ' + noun : 'Add a ' + noun;
+      $('#movieDialogSubtitle').textContent = movie ? 'Update the details in your library.' : editingShow ? 'Save a series for your next binge.' : 'Save a title for another movie night.';
+      $('#titleInputLabel').textContent = editingShow ? 'Show title' : 'Movie title';
+      $('#titleInput').placeholder = editingShow ? 'e.g. Reply 1988' : 'e.g. In the Mood for Love';
+      $('#nextThreeLine').hidden = editingShow;
+      $('#deleteButton').textContent = editingShow ? 'Remove show' : 'Remove movie';
+      $('#saveMovieButton').textContent = editingShow ? 'Save show' : 'Save movie';
       $('#titleInput').value = movie ? movie.title : '';
       $('#statusInput').value = movie ? movie.status : 'Plan to watch';
       $('#ratingInput').value = movie && ratingValue(movie) !== null ? movie.rating : '';
-      $('#nextThreeInput').checked = movie ? isPlannedSoon(movie) : activeView === 'next3';
+      $('#nextThreeInput').checked = !editingShow && (movie ? isPlannedSoon(movie) : activeView === 'next3');
       syncNextThreeInput();
       $('#deleteButton').hidden = !movie;
       $('#movieDialog').showModal();
@@ -738,7 +800,7 @@
     }
     function toggleFavorite(movieId) {
       var movie = movies.find(function (item) { return item.id === movieId && !item.isDeleted; });
-      if (!movie) return;
+      if (!movie || isShow(movie)) return;
       if (movie.favoriteRank != null) {
         movie.favoriteRank = null;
         touchMovie(movie);
@@ -771,9 +833,9 @@
 
     function csvEscape(value) { return '"' + String(value == null ? '' : value).replace(/"/g, '""') + '"'; }
     function exportCsv() {
-      var rows = [['ID', 'Movie', 'Status', 'Rating', 'Next 3 months', 'Favorite rank']];
-      visibleMovies().forEach(function (movie) {
-        rows.push([movie.id, movie.title, movie.status, movie.rating == null ? '' : movie.rating, isPlannedSoon(movie) ? 'TRUE' : 'FALSE', movie.favoriteRank == null ? '' : movie.favoriteRank]);
+      var rows = [['ID', 'Movie', 'Type', 'Status', 'Rating', 'Next 3 months', 'Favorite rank']];
+      visibleItems().forEach(function (movie) {
+        rows.push([movie.id, movie.title, isShow(movie) ? 'TV show' : 'Movie', movie.status, movie.rating == null ? '' : movie.rating, isPlannedSoon(movie) ? 'TRUE' : 'FALSE', movie.favoriteRank == null ? '' : movie.favoriteRank]);
       });
       var csv = '\ufeff' + rows.map(function (row) { return row.map(csvEscape).join(','); }).join('\r\n');
       var link = document.createElement('a');
@@ -781,7 +843,7 @@
       link.download = 'movie-tracker.csv';
       link.click();
       setTimeout(function () { URL.revokeObjectURL(link.href); }, 1000);
-      showToast('Your movie list is ready to download.');
+      showToast('Your library is ready to download.');
     }
     function parseCsv(text) {
       var rows = [], row = [], field = '', quoted = false;
@@ -812,25 +874,29 @@
           var ratingIndex = headers.indexOf('rating');
           var nextIndex = headers.indexOf('next 3 months');
           var favoriteRankIndex = headers.indexOf('favorite rank');
+          var typeIndex = headers.indexOf('type');
           if (titleIndex < 0) throw new Error('Add a “Movie” or “Title” column to the CSV.');
           var imported = rows.slice(1).map(function (values, index) {
             var rawRating = ratingIndex >= 0 ? (values[ratingIndex] || '').trim() : '';
             var rating = rawRating === '' ? null : Number(rawRating);
             var status = statusIndex >= 0 ? (values[statusIndex] || '').trim() : '';
+            var id = idIndex >= 0 && (values[idIndex] || '').trim() ? values[idIndex].trim() : makeId('import-' + index);
+            var showRow = typeIndex >= 0 && /^(tv|show|tv show|series)$/i.test((values[typeIndex] || '').trim());
+            if (showRow && id.indexOf(SHOW_ID_PREFIX) !== 0) id = SHOW_ID_PREFIX + id;
             return {
-              id: idIndex >= 0 && (values[idIndex] || '').trim() ? values[idIndex].trim() : makeId('import-' + index),
+              id: id,
               title: (values[titleIndex] || '').trim(),
               status: statuses.indexOf(status) >= 0 ? status : 'Plan to watch',
               rating: Number.isFinite(rating) && rating >= 0 && rating <= 10 ? rating : null,
-              favoriteRank: favoriteRankIndex >= 0 ? Number((values[favoriteRankIndex] || '').trim()) || null : null,
-              nextThreeMonths: nextIndex >= 0 && /^(true|yes|1)$/i.test((values[nextIndex] || '').trim()),
+              favoriteRank: !showRow && favoriteRankIndex >= 0 ? Number((values[favoriteRankIndex] || '').trim()) || null : null,
+              nextThreeMonths: !showRow && nextIndex >= 0 && /^(true|yes|1)$/i.test((values[nextIndex] || '').trim()),
               isDeleted: false,
               createdAt: nowIso(),
               updatedAt: nowIso()
             };
           }).filter(function (movie) { return movie.title; });
           if (!imported.length) throw new Error('No movie titles were found in that CSV.');
-          if (!window.confirm('Replace this browser library with ' + imported.length.toLocaleString() + ' movies from “' + file.name + '”? Export first if you want to keep a separate copy.')) return;
+          if (!window.confirm('Replace this browser library with ' + imported.length.toLocaleString() + ' titles from “' + file.name + '”? Export first if you want to keep a separate copy.')) return;
           var importIds = {};
           imported.forEach(function (movie) { importIds[movie.id] = true; });
           var tombstones = movies.filter(function (movie) { return !importIds[movie.id]; }).map(function (movie) {
@@ -841,9 +907,10 @@
           movies = tombstones.concat(imported);
           compactFavoriteRanks();
           localStorage.setItem(UPCOMING_MIGRATION_KEY, 'done');
+          localStorage.setItem(TV_SHOWS_MIGRATION_KEY, 'done');
           activeView = 'all'; activeStatus = 'all'; currentPageSize = PAGE_SIZE;
           saveLocal(true); render();
-          showToast('Imported ' + imported.length.toLocaleString() + ' movies.');
+          showToast('Imported ' + imported.length.toLocaleString() + ' titles.');
         } catch (error) { showToast(error.message || 'This CSV could not be imported.'); }
       };
       reader.onerror = function () { showToast('This CSV could not be read.'); };
@@ -905,7 +972,10 @@
     function mergeMovies(localMovies, remoteMovies, switchedUser) {
       if (switchedUser) {
         if (remoteMovies.length) return { movies: remoteMovies, upload: [] };
-        var fresh = normalizeMovies(seedMovies);
+        movies = normalizeMovies(seedMovies);
+        localStorage.removeItem(TV_SHOWS_MIGRATION_KEY);
+        applyShowSeed();
+        var fresh = movies;
         return { movies: fresh, upload: fresh };
       }
       var remoteById = {};
@@ -1073,7 +1143,7 @@
       var rawRating = $('#ratingInput').value.trim();
       var rating = rawRating === '' ? null : Number(rawRating);
       if (rating !== null && (!Number.isFinite(rating) || rating < 0 || rating > 10)) { $('#ratingInput').focus(); showToast('Choose a rating between 0 and 10.'); return; }
-      var next3 = status === 'Plan to watch' && $('#nextThreeInput').checked;
+      var next3 = !editingShow && status === 'Plan to watch' && $('#nextThreeInput').checked;
       if (editingId) {
         var existing = movies.find(function (movie) { return movie.id === editingId; });
         if (existing) {
@@ -1084,11 +1154,11 @@
           existing.isDeleted = false;
           touchMovie(existing);
         }
-        showToast('Movie details updated.');
+        showToast(editingShow ? 'Show details updated.' : 'Movie details updated.');
       } else {
         var created = nowIso();
-        movies.unshift({ id: makeId('movie'), title: title, status: status, rating: rating, nextThreeMonths: next3, isDeleted: false, createdAt: created, updatedAt: created });
-        showToast('Movie added to your library.');
+        movies.unshift({ id: makeId(editingShow ? 'show' : 'movie'), title: title, status: status, rating: rating, favoriteRank: null, nextThreeMonths: next3, isDeleted: false, createdAt: created, updatedAt: created });
+        showToast(editingShow ? 'TV show added to your library.' : 'Movie added to your library.');
       }
       saveLocal(true); closeMovieDialog(); currentPageSize = PAGE_SIZE; render();
     });
@@ -1100,7 +1170,7 @@
       compactFavoriteRanks();
       touchMovie(movie);
       saveLocal(true); closeMovieDialog(); render();
-      showToast('Movie removed.');
+      showToast(isShow(movie) ? 'Show removed.' : 'Movie removed.');
     });
     document.querySelectorAll('[data-close-movie]').forEach(function (button) { button.addEventListener('click', closeMovieDialog); });
     $('#movieDialog').addEventListener('click', function (event) { if (event.target === $('#movieDialog')) closeMovieDialog(); });
@@ -1156,6 +1226,7 @@
     refreshTimer = setInterval(function () { if (activeUser && !document.hidden) syncCloud(false); }, REFRESH_MS);
 
     applyUpcomingSeed();
+    applyShowSeed();
     saveLocal(false);
     render();
     updateCloudDialog();

@@ -5,6 +5,7 @@ A minimal, responsive movie library that works as a static website. It keeps the
 ## Sections
 
 - **All movies** — search, filter by status, change status inline, edit details, and rate titles.
+- **TV shows** — a separate list of series with the same statuses (Watched, Plan to watch, Watching, Dropped), search, sort, and ratings. It starts with 33 shows marked Watched. Shows stay out of the movie views, Top 10, and Highest rated.
 - **Next 3 months** — a curated list from the screenshots. Matching titles are not duplicated, and their current statuses are preserved.
 - **Top 10 favorites** — star titles from any list, up to ten at a time. Use the arrows beside a favorite to rank it.
 - **Highest rated** — every movie with a rating, sorted from highest to lowest. This view shows the full ranked list in one continuous scroll; it is not limited to ten.
@@ -37,5 +38,6 @@ The frontend key is public by design. Do not put a Supabase secret or service-ro
 - Updates are saved in browser storage immediately, then synced when signed in and online. Returning to the page, switching back to it, or leaving it open for a minute refreshes cloud data. Conflicts use the most recent update time.
 - Until you sign in on a device, its changes stay on that device only.
 - Removing a movie creates a hidden tombstone so another device does not restore it during sync.
-- CSV export includes stable IDs, the Next 3 months flag, and favorite rank for backup and restore.
+- TV shows are stored in the same `movies` table, with ids that start with `show-`, so no database change is needed. The starting show list is added once per browser with fixed ids, so a second device merges it instead of making duplicates.
+- CSV export includes stable IDs, a Type column (Movie or TV show), the Next 3 months flag, and favorite rank for backup and restore.
 
