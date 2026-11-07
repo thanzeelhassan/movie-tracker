@@ -5,7 +5,7 @@ A minimal, responsive movie library that works as a static website. It keeps the
 ## Sections
 
 - **All movies** — search, filter by status, change status inline, edit details, and rate titles.
-- **TV shows** — a separate list of series with the same statuses (Watched, Plan to watch, Watching, Dropped), search, sort, and ratings. It starts with 33 shows marked Watched. Shows stay out of the movie views, Top 10, and Highest rated.
+- **TV shows** — its own section in the sidebar, below the movie views, with a separate list of series with the same statuses (Watched, Plan to watch, Watching, Dropped), search, sort, and ratings. It starts with 33 shows marked Watched. Shows stay out of the movie views, Top 10, and Highest rated.
 - **Next 3 months** — a curated list from the screenshots. Matching titles are not duplicated, and their current statuses are preserved.
 - **Top 10 favorites** — star titles from any list, up to ten at a time. Use the arrows beside a favorite to rank it.
 - **Highest rated** — every movie with a rating, sorted from highest to lowest. This view shows the full ranked list in one continuous scroll; it is not limited to ten.
