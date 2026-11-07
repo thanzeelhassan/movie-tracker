@@ -38,6 +38,14 @@ The frontend key is public by design. Do not put a Supabase secret or service-ro
 - Updates are saved in browser storage immediately, then synced when signed in and online. Returning to the page, switching back to it, or leaving it open for a minute refreshes cloud data. Conflicts use the most recent update time.
 - Until you sign in on a device, its changes stay on that device only.
 - Removing a movie creates a hidden tombstone so another device does not restore it during sync.
-- TV shows are stored in the same `movies` table, with ids that start with `show-`, so no database change is needed. The starting show list is added once per browser with fixed ids, so a second device merges it instead of making duplicates.
+- TV shows sync to their own `tv_shows` table, and movies sync to `movies`. Show ids start with `show-`. The starting show list is added once per browser with fixed ids, so a second device merges it instead of making duplicates.
 - CSV export includes stable IDs, a Type column (Movie or TV show), the Next 3 months flag, and favorite rank for backup and restore.
+
+## Move TV shows out of the movies table
+
+Earlier versions saved TV shows in the `movies` table. To move them into `tv_shows`:
+
+1. Publish this version of the site, and reload it on every device you use, so no old copy keeps writing shows into `movies`.
+2. In the Supabase SQL Editor, run [supabase-schema.sql](./supabase-schema.sql) again. It adds the `tv_shows` table and leaves your movies alone.
+3. Then run [migrate-tv-shows.sql](./migrate-tv-shows.sql). It copies the shows into `tv_shows`, checks that every one arrived, and only then deletes them from `movies`. If the check fails, it stops and changes nothing. It is safe to run again.
 

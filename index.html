@@ -464,8 +464,8 @@
       "cocktail movie", "Bleach manga", "Fairy tail manga", "Skip to loafer", "Demon Slayer"
     ];
     var TV_SHOWS_MIGRATION_KEY = 'movie-tracker-tv-shows-v1';
-    // TV shows live in the same table as movies. An id that starts with "show-" marks a show,
-    // so cloud sync keeps working without a new database column.
+    // TV shows sync to their own tv_shows table. In this browser they share one list with movies,
+    // and an id that starts with "show-" marks a show so it goes to the right table.
     var SHOW_ID_PREFIX = 'show-';
     var seedShows = [
       "3 Body Problem (2024)", "100 Days My Prince (2018)", "Alice in Borderland (2020)", "Black Mirror (2011)",
@@ -955,6 +955,18 @@
     }
     function toRemote(movie, userId) {
       var time = nowIso();
+      if (isShow(movie)) {
+        return {
+          id: movie.id,
+          user_id: userId,
+          title: movie.title,
+          status: movie.status,
+          rating: movie.rating == null ? null : movie.rating,
+          is_deleted: Boolean(movie.isDeleted),
+          created_at: movie.createdAt || time,
+          updated_at: movie.updatedAt || time
+        };
+      }
       return {
         id: movie.id,
         user_id: userId,
@@ -1002,12 +1014,27 @@
       remoteMovies.forEach(function (remote) { if (!seen[remote.id]) merged.push(remote); });
       return { movies: merged, upload: upload };
     }
-    // Supabase returns at most 1000 rows per request, so read the table in pages.
+    var MOVIE_COLUMNS = 'id,user_id,title,status,rating,next_three_months,favorite_rank,is_deleted,created_at,updated_at';
+    var SHOW_COLUMNS = 'id,user_id,title,status,rating,is_deleted,created_at,updated_at';
+    // Movies sync with the movies table and TV shows with the tv_shows table.
+    // Show rows still left in movies from before the move are ignored; migrate-tv-shows.sql moves them.
     async function fetchRemoteMovies(userId) {
+      var movieRows = (await fetchRemoteTable('movies', MOVIE_COLUMNS, userId)).filter(function (row) { return !isShow(row); });
+      var showRows = await fetchRemoteTable('tv_shows', SHOW_COLUMNS, userId);
+      return movieRows.concat(showRows);
+    }
+    async function uploadRemote(table, records) {
+      for (var start = 0; start < records.length; start += UPLOAD_CHUNK) {
+        var upload = await supabaseClient.from(table).upsert(records.slice(start, start + UPLOAD_CHUNK), { onConflict: 'user_id,id' });
+        if (upload.error) throw upload.error;
+      }
+    }
+    // Supabase returns at most 1000 rows per request, so read each table in pages.
+    async function fetchRemoteTable(table, columns, userId) {
       var rows = [];
       for (var from = 0; ; from += PAGE_ROWS) {
-        var response = await supabaseClient.from('movies')
-          .select('id,user_id,title,status,rating,next_three_months,favorite_rank,is_deleted,created_at,updated_at')
+        var response = await supabaseClient.from(table)
+          .select(columns)
           .eq('user_id', userId)
           .order('id', { ascending: true })
           .range(from, from + PAGE_ROWS - 1);
@@ -1032,11 +1059,8 @@
           movies = result.movies;
           saveLocal(false);
           render();
-          var records = result.upload.map(function (movie) { return toRemote(movie, activeUser.id); });
-          for (var start = 0; start < records.length; start += UPLOAD_CHUNK) {
-            var upload = await supabaseClient.from('movies').upsert(records.slice(start, start + UPLOAD_CHUNK), { onConflict: 'user_id,id' });
-            if (upload.error) throw upload.error;
-          }
+          await uploadRemote('movies', result.upload.filter(function (item) { return !isShow(item); }).map(function (movie) { return toRemote(movie, activeUser.id); }));
+          await uploadRemote('tv_shows', result.upload.filter(isShow).map(function (show) { return toRemote(show, activeUser.id); }));
           localStorage.setItem(CLOUD_USER_KEY, activeUser.id);
           cloudReady = true;
           setSyncState('Synced to cloud', 'ready');
